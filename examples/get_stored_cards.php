@@ -1,7 +1,7 @@
 
 <?php
 /**
- * PHP library version: 1.3
+ * PHP library version: 
  */
 require_once('../lib/worldpay.php');
 
@@ -26,9 +26,11 @@ try {
     echo '<p>Masked Card Number: <span id="masked-card-number">' . $cardDetails['maskedCardNumber'] . '</span></p>';
     echo '<pre>' . print_r($cardDetails, true). '</pre>';
 
-} catch (WorldpayException $e) { // PHP 5.2 - Change to Exception, only $e->getMessage() is available
+} catch (WorldpayException $e) { // PHP 5.3+
     echo 'Error code: ' . $e->getCustomCode() . '<br/> 
     HTTP status code:' . $e->getHttpStatusCode() . '<br/> 
     Error description: ' . $e->getDescription()  . ' <br/>
     Error message: ' . $e->getMessage();
+} catch (Exception $e) {  // PHP 5.2 
+    echo 'Error message: '. $e->getMessage();
 }

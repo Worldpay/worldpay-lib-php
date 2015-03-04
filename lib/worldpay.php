@@ -1,7 +1,7 @@
 <?php
 
 /**
- * PHP library version: 1.3
+ * PHP library version: 
  */
 
 final class Worldpay
@@ -38,6 +38,9 @@ final class Worldpay
         'notificationPost'      => 'Notification Error: Not a post',
         'notificationUnknown'   => 'Notification Error: Cannot be processed',
         'refund'    =>  array(
+            'ordercode'         => 'No order code entered'
+        ),
+        'capture'    =>  array(
             'ordercode'         => 'No order code entered'
         ),
         'json'      => 'JSON could not be decoded',
@@ -171,7 +174,7 @@ final class Worldpay
         }
 
         $clientUserAgent = 'os.name=' . php_uname('s') . ';os.version=' . php_uname('r') . ';os.arch=' .
-        $arch . ';lang.version='. phpversion() . ';lib.version=1.3;' .
+        $arch . ';lang.version='. phpversion() . ';lib.version=;' .
         'api.version=v1;lang=php;owner=worldpay';
 
         curl_setopt(
@@ -267,6 +270,7 @@ final class Worldpay
             'customerIdentifiers' => null,
             'billingAddress' => null,
             'is3DSOrder' => false,
+            'authoriseOnly' => false,
             'redirectURL' => false
         );
 
@@ -280,6 +284,7 @@ final class Worldpay
             "currencyCode" => $order['currencyCode'],
             "name" => $order['name'],
             "orderType" => $order['orderType'],
+            "authorizeOnly" => ($order['authoriseOnly']) ? true : false,
             "billingAddress" => $order['billingAddress'],
             "customerOrderCode" => $order['customerOrderCode'],
             "customerIdentifiers" => $order['customerIdentifiers']
@@ -323,6 +328,39 @@ final class Worldpay
     }
 
     /**
+     * Capture Authorized Worldpay Order
+     * @param string $orderCode
+     * @param string $amount
+     * */
+    public function captureAuthorisedOrder($orderCode = false, $amount = null)
+    {
+        if (empty($orderCode) || !is_string($orderCode)) {
+            self::onError('ip', self::$errors['capture']['ordercode']);
+        }
+
+        if (!empty($amount) && is_int($amount)) {
+            $json = json_encode(array('captureAmount'=>"{$amount}"));
+        } else {
+            $json = false;
+        }
+
+        $this->sendRequest('orders/' . $orderCode . '/capture', $json, !!$json);
+    }
+
+    /**
+     * Cancel Authorized Worldpay Order
+     * @param string $orderCode
+     * */
+    public function cancelAuthorisedOrder($orderCode = false)
+    {
+        if (empty($orderCode) || !is_string($orderCode)) {
+            self::onError('ip', self::$errors['capture']['ordercode']);
+        }
+
+        $this->sendRequest('orders/' . $orderCode, false, false, 'DELETE');
+    }
+
+    /**
      * Refund Worldpay order
      * @param bool $orderCode
      * @param null $amount
@@ -339,7 +377,7 @@ final class Worldpay
             $json = false;
         }
 
-        $this->sendRequest('orders/' . $orderCode . '/refund', $json, !!$json);
+        $this->sendRequest('orders/' . $orderCode . '/refund', $json, false);
     }
 
     /**

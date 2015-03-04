@@ -1,6 +1,6 @@
 
  <?php include("header.php"); ?>
-        <script src=""></script>
+        <script src="https://cdn.worldpay.com/v1/worldpay.js"></script>
         <h1>PHP Library Create Order Example</h1>
         <form method="post" action="create_order.php" id="my-payment-form">
             <div class="payment-errors"></div>
@@ -130,6 +130,11 @@
             <div class="form-row">
                 <label>Use 3DS :</label>
                 <input type="checkbox" id="chk3Ds" name="3ds" />
+            </div>
+            
+            <div class="form-row">
+                <label>Authorise Only:</label>
+                <input type="checkbox" id="chkAuthoriseOnly" name="authoriseOnly" />
             </div>
             
                 <input type="submit" id="place-order" value="Place Order" />

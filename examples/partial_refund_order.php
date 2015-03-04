@@ -1,7 +1,7 @@
 
 <?php
 /**
- * PHP library version: 1.3
+ * PHP library version: 
  */
 require_once('../lib/worldpay.php');
 
@@ -21,12 +21,16 @@ include("header.php");
 try {
     // Refund the order using the Worldpay order code
     $worldpay->refundOrder($worldpayOrderCode, $amount*100);
-    echo 'Order <span id="order-code">'.$worldpayOrderCode.'</span>
-        has been refunded for <span id="amount">'. $amount .'</span>';
-} catch (WorldpayException $e) { // PHP 5.2 - Change to Exception, only $e->getMessage() is available
+    $response = 'Order <span id="order-code">'.$worldpayOrderCode.'</span> has been refunded for ';
+    $response .= (!empty($amount)) ? '<span id="amount">'. $amount .'</span>' : 'the full amount';
+    echo $response;
+    
+} catch (WorldpayException $e) { // PHP 5.3+
     // Worldpay has thrown an exception
     echo 'Error code: ' . $e->getCustomCode() . '<br/> 
     HTTP status code:' . $e->getHttpStatusCode() . '<br/> 
     Error description: ' . $e->getDescription()  . ' <br/>
     Error message: ' . $e->getMessage();
+} catch (Exception $e) {  // PHP 5.2 
+    echo 'Error message: '. $e->getMessage();
 }

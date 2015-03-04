@@ -1,7 +1,7 @@
 
 <?php
 /**
- * PHP library version: 1.3
+ * PHP library version: 
  */
 require_once('../lib/worldpay.php');
 
@@ -16,6 +16,7 @@ $token = $_POST['token'];
 $name = $_POST['name'];
 $amount = $_POST['amount'];
 $_3ds = (isset($_POST['3ds'])) ? $_POST['3ds'] : false;
+$authoriseOnly = (isset($_POST['authoriseOnly'])) ? $_POST['authoriseOnly'] : false;
 
 include('header.php');
 
@@ -36,6 +37,7 @@ try {
         'orderDescription' => $_POST['description'], // Order description of your choice
         'amount' => $amount*100, // Amount in pence
         'is3DSOrder' => $_3ds, // 3DS
+        'authoriseOnly' => $authoriseOnly,
         'currencyCode' => $_POST['currency'], // Currency code
         'name' => ($_3ds) ? '3D' : $name, // Customer name
         'billingAddress' => $billing_address, // Billing address array
@@ -44,8 +46,8 @@ try {
         ),
         'customerOrderCode' => 'A123' // Order code of your choice
     ));
-    
-    if ($response['paymentStatus'] === 'SUCCESS') {
+        
+    if ($response['paymentStatus'] === 'SUCCESS' ||  $response['paymentStatus'] === 'AUTHORIZED') {
         // Create order was successful!
         $worldpayOrderCode = $response['orderCode'];
         echo '<p>Order Code: <span id="order-code">' . $worldpayOrderCode . '</span></p>';
@@ -73,10 +75,12 @@ try {
         echo '<p id="payment-status">' . $response['paymentStatus'] . '</p>';
         throw new WorldpayException(print_r($response, true));
     }
-} catch (WorldpayException $e) { // PHP 5.2 - Change to Exception, only $e->getMessage() is available
+} catch (WorldpayException $e) { // PHP 5.3+
     // Worldpay has thrown an exception
     echo 'Error code: ' . $e->getCustomCode() . '<br/> 
     HTTP status code:' . $e->getHttpStatusCode() . '<br/> 
     Error description: ' . $e->getDescription()  . ' <br/>
     Error message: ' . $e->getMessage();
+} catch (Exception $e) {  // PHP 5.2 
+    echo 'Error message: '. $e->getMessage();
 }

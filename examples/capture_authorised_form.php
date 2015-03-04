@@ -1,6 +1,6 @@
 <?php include("header.php"); ?>
-        <h1>PHP Library Refund Example</h1>
-        <form method="post" action="partial_refund_order.php" id="my-payment-form">
+        <h1>PHP Library Capture Authorised Order Example</h1>
+        <form method="post" action="capture_authorised_order.php" id="capture-authorised-order-form">
             <div class="payment-errors"></div>
             <div class="form-row">
                 <label>
@@ -14,10 +14,8 @@
                 </label>
                 <input type="text" id="amount" name="amount" value="" />
             </div>
-            <input type="submit" id="refund-order" value="Partial Refund Order" />
+            <input type="submit" id="capture-order" value="Capture Authorised Order" />
         </form>
-
     </div>
-
 </body>
 </html>
