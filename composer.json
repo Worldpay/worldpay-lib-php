@@ -1,0 +1,23 @@
+{
+  "name": "worldpay/worldpay-lib-php",
+  "type": "library",
+  "description": "Library for WorldPay payments",
+  "keywords": ["payments"],
+  "homepage": "https://worldpay.com",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "ao",
+      "homepage": "https://github.com/ao"
+    }
+  ],
+  "require": {
+    "php": ">=5.2",
+    "lib-curl": "*"
+  },
+  "autoload": {
+    "psr-0" : {
+      "" : "lib/"
+    }
+  }
+}
