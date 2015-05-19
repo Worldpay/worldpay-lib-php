@@ -1,7 +1,7 @@
 
 <?php
 /**
- * PHP library version: 
+ * PHP library version: v1.5
  */
 require_once('../lib/worldpay.php');
 
@@ -38,6 +38,7 @@ try {
         'amount' => $amount*100, // Amount in pence
         'is3DSOrder' => $_3ds, // 3DS
         'authoriseOnly' => $authoriseOnly,
+        'orderType' => $_POST['order-type'], //Order Type: ECOM/MOTO/RECURRING
         'currencyCode' => $_POST['currency'], // Currency code
         'name' => ($_3ds) ? '3D' : $name, // Customer name
         'billingAddress' => $billing_address, // Billing address array

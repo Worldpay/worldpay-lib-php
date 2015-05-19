@@ -1,7 +1,7 @@
 <?php
 
 /**
- * PHP library version: 
+ * PHP library version: v1.5
  */
 
 final class Worldpay
@@ -12,10 +12,11 @@ final class Worldpay
      * */
 
     private $service_key = "";
-    private $timeout = 10;
+    private $timeout = 65;
     private $disable_ssl = false;
     private $endpoint = 'https://api.worldpay.com/v1/';
     private static $use_external_JSON = false;
+    private $order_types = ['ECOM', 'MOTO', 'RECURRING'];
 
     private static $errors = array(
         "ip"        => "Invalid parameters",
@@ -45,7 +46,8 @@ final class Worldpay
         ),
         'json'      => 'JSON could not be decoded',
         'key'       => 'Please enter your service key',
-        'sslerror'  => 'Worldpay SSL certificate could not be validated'
+        'sslerror'  => 'Worldpay SSL certificate could not be validated',
+        'timeouterror'=> 'Gateway timeout - possible order failure. Please review the order in the portal to confirm success.'
     );
 
     /**
@@ -80,7 +82,7 @@ final class Worldpay
     private function getClientIp()
     {
         $ipaddress = '';
-        
+
         if (isset($_SERVER['HTTP_CLIENT_IP'])) {
             $ipaddress = $_SERVER['HTTP_CLIENT_IP'];
         } elseif (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
@@ -174,7 +176,7 @@ final class Worldpay
         }
 
         $clientUserAgent = 'os.name=' . php_uname('s') . ';os.version=' . php_uname('r') . ';os.arch=' .
-        $arch . ';lang.version='. phpversion() . ';lib.version=;' .
+        $arch . ';lang.version='. phpversion() . ';lib.version=v1.5;' .
         'api.version=v1;lang=php;owner=worldpay';
 
         curl_setopt(
@@ -194,7 +196,7 @@ final class Worldpay
             }
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         }
-        
+
 
         $result = curl_exec($ch);
         $info = curl_getinfo($ch);
@@ -206,6 +208,8 @@ final class Worldpay
         if ($result === false) {
             if ($errno === 60) {
                 self::onError('sslerror', false, $errno, null, $err);
+            } else if ($errno === 28) {
+                self::onError('timeouterror', false, $errno, null, $err);
             } else {
                 self::onError('uanv', false, $errno, null, $err);
             }
@@ -222,7 +226,7 @@ final class Worldpay
         if ($expectResponse && ($response === null || $response === false )) {
             self::onError('uanv', self::$errors['json'], 503);
         }
-        
+
         // Check the status code exists
         if (isset($response["httpStatusCode"])) {
 
@@ -241,7 +245,7 @@ final class Worldpay
         } elseif ($expectResponse && $info['http_code'] != 200) {
             // If we expect a result and we have an error
             self::onError('uanv', self::$errors['json'], 503);
-            
+
         } elseif (!$expectResponse) {
 
             if ($info['http_code'] != 200) {
@@ -275,7 +279,7 @@ final class Worldpay
         );
 
         $order = array_merge($defaults, $order);
-        
+
         $obj = array(
             "token" => $order['token'],
             "orderDescription" => $order['orderDescription'],
@@ -283,13 +287,13 @@ final class Worldpay
             "is3DSOrder" => ($order['is3DSOrder']) ? true : false,
             "currencyCode" => $order['currencyCode'],
             "name" => $order['name'],
-            "orderType" => $order['orderType'],
+            "orderType" => (in_array($order['orderType'], $this->order_types)) ? $order['orderType'] : 'ECOM',
             "authorizeOnly" => ($order['authoriseOnly']) ? true : false,
             "billingAddress" => $order['billingAddress'],
             "customerOrderCode" => $order['customerOrderCode'],
             "customerIdentifiers" => $order['customerIdentifiers']
         );
-        
+
         if ($obj['is3DSOrder']) {
             $_SESSION['worldpay_sessionid'] = uniqid();
             $obj['shopperIpAddress'] = $this->getClientIp();
@@ -299,7 +303,7 @@ final class Worldpay
         }
 
         $json = json_encode($obj);
-        
+
         $response = $this->sendRequest('orders', $json, true);
 
         if (isset($response["orderCode"])) {
@@ -309,7 +313,7 @@ final class Worldpay
             self::onError("apierror");
         }
     }
-    
+
     /**
      * Authorise Worldpay 3DS Order
      * @param string $orderCode
@@ -381,7 +385,7 @@ final class Worldpay
     }
 
     /**
-     * Get card details from Worldpay token 
+     * Get card details from Worldpay token
      * @param string $token
      * @return array card details
      * */
@@ -395,7 +399,7 @@ final class Worldpay
         if (!isset($response['paymentMethod'])) {
             self::onError("apierror");
         }
-        
+
         return $response['paymentMethod'];
     }
 

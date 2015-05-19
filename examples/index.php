@@ -123,6 +123,14 @@
             </div>
 
             <div class="form-row">
+                <label>Order Type:</label>
+                 <select id="order-type" name="order-type">
+                    <option value="ECOM" selected>ECOM</option>
+                    <option value="MOTO">MOTO</option>
+                </select>
+            </div>
+
+            <div class="form-row">
                 <label>Reusable Token:</label>
                 <input type="checkbox" id="chkReusable" />
             </div>
@@ -146,41 +154,41 @@
 
     </div>
 
+<small>
     
-
-   
+</small>
 
     <script type="text/javascript">
-        if (!Worldpay) {
-            alert('Worldpay JS not loaded!');
+        if (!window['Worldpay']) {
+            document.getElementById('place-order').disabled = true;
         }
+        else {
+            // Set client key
+            Worldpay.setClientKey("your-client-key");
+            // Get form element
+            var form = $('#my-payment-form')[0];
+            Worldpay.useForm(form, function (status, response) {
+                if (response.error) {
+                    Worldpay.handleError(form, $('#my-payment-form .payment-errors')[0], response.error);
+                } else if (status != 200) {
+                    Worldpay.handleError(form, $('#my-payment-form .payment-errors')[0], response);
+                } else {
+                    var token = response.token;
+                    Worldpay.formBuilder(form, 'input', 'hidden', 'token', token);
+                    $('#my-payment-form .token').html("Your token is: " + token);
+                    form.submit();
+                }
+            });
 
-        // Set client key
-        Worldpay.setClientKey("your-client-key");
-
-        // Get form element
-        var form = $('#my-payment-form')[0];
-        Worldpay.useForm(form, function (status, response) {
-        	if (response.error) {
-        		Worldpay.handleError(form, $('#my-payment-form .payment-errors')[0], response.error);
-        	} else if (status != 200) {
-        		Worldpay.handleError(form, $('#my-payment-form .payment-errors')[0], response);
-        	} else {
-        		var token = response.token;
-        		Worldpay.formBuilder(form, 'input', 'hidden', 'token', token);
-        		$('#my-payment-form .token').html("Your token is: " + token);
-        		form.submit();
-        	}
-        });
-
-        $('#chkReusable').change(function(){
-            if ($(this).is(':checked')) {
-                Worldpay.reusable = true;
-            }
-            else {
-                Worldpay.reusable = false;
-            }
-        });
+            $('#chkReusable').change(function(){
+                if ($(this).is(':checked')) {
+                    Worldpay.reusable = true;
+                }
+                else {
+                    Worldpay.reusable = false;
+                }
+            });
+        }
         $('#chkReusable').prop('checked', false);
     </script>
 
