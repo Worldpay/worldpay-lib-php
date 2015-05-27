@@ -1,7 +1,7 @@
 <?php
 
 /**
- * PHP library version: v1.5
+ * PHP library version: v1.6
  */
 
 final class Worldpay
@@ -176,7 +176,7 @@ final class Worldpay
         }
 
         $clientUserAgent = 'os.name=' . php_uname('s') . ';os.version=' . php_uname('r') . ';os.arch=' .
-        $arch . ';lang.version='. phpversion() . ';lib.version=v1.5;' .
+        $arch . ';lang.version='. phpversion() . ';lib.version=v1.6;' .
         'api.version=v1;lang=php;owner=worldpay';
 
         curl_setopt(
@@ -342,7 +342,7 @@ final class Worldpay
             self::onError('ip', self::$errors['capture']['ordercode']);
         }
 
-        if (!empty($amount) && is_int($amount)) {
+        if (!empty($amount) && is_numeric($amount)) {
             $json = json_encode(array('captureAmount'=>"{$amount}"));
         } else {
             $json = false;
@@ -375,7 +375,7 @@ final class Worldpay
             self::onError('ip', self::$errors['refund']['ordercode']);
         }
 
-        if (!empty($amount) && is_int($amount)) {
+        if (!empty($amount) && is_numeric($amount)) {
             $json = json_encode(array('refundAmount'=>"{$amount}"));
         } else {
             $json = false;

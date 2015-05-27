@@ -1,3 +1,6 @@
+### 1.6 2015-05-27
+* Check is_numeric instead of is_int for Captures
+
 ### 1.5 2015-05-19
 * Modify PHP library timeout period and message
 
