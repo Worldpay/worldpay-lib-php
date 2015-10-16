@@ -1,62 +1,26 @@
 
  <?php include("header.php"); ?>
         <script src="https://cdn.worldpay.com/v1/worldpay.js"></script>
-        <h1>PHP Library Create Order Example</h1>
-        <form method="post" action="create_order.php" id="my-payment-form">
+        <h1>PHP Library Create APM Order Example</h1>
+        <form method="post" action="create_apm_order.php" id="my-payment-form">
             <div class="payment-errors"></div>
             <div class="header">Checkout</div>
+
+            <div class="form-row">
+                <label>
+                    APM
+                </label>
+                <select id="apm-name" data-worldpay="apm-name">
+                    <option value="paypal" selected="selected">PayPal</option>
+                    <option value="giropay">Giropay</option>
+                </select>
+            </div>
+
             <div class="form-row">
                 <label>
                     Name
                 </label>
-                <input type="text" id="name" name="name" data-worldpay="name" value="Example Name" />
-            </div>
-
-            <div class="form-row">
-                <label>
-                    Card Number
-                </label>
-                <input type="text" id="card" size="20" data-worldpay="number" value="4444333322221111" />
-
-            </div>
-
-
-            <div class="form-row">
-                <label>
-                    CVC
-                </label>
-                <input type="text" id="cvc" size="4" data-worldpay="cvc" value="321" />
-            </div>
-
-
-            <div class="form-row">
-                <label>
-                    Expiration (MM/YYYY)
-                </label>
-                <select id="expiration-month" data-worldpay="exp-month">
-                    <option value="01">01</option>
-                    <option value="02">02</option>
-                    <option value="03">03</option>
-                    <option value="04">04</option>
-                    <option value="05">05</option>
-                    <option value="06">06</option>
-                    <option value="07">07</option>
-                    <option value="08">08</option>
-                    <option value="09">09</option>
-                    <option value="10" selected="selected">10</option>
-                    <option value="11">11</option>
-                    <option value="12">12</option>
-                </select>
-                <span> / </span>
-                <select id="expiration-year" data-worldpay="exp-year">
-                    <option value="2015">2015</option>
-                    <option value="2016" selected="selected">2016</option>
-                    <option value="2017">2017</option>
-                    <option value="2018">2018</option>
-                    <option value="2019">2019</option>
-                    <option value="2020">2020</option>
-                    <option value="2021">2021</option>
-                </select>
+                <input type="text" id="name" name="name" value="Example Name" />
             </div>
 
             <div class="form-row">
@@ -89,30 +53,13 @@
                 </select>
             </div>
 
-            <div class="form-row">
-                <label>Order Type</label>
-                 <select id="order-type" name="order-type">
-                    <option value="ECOM" selected>ECOM</option>
-                    <option value="MOTO">MOTO</option>
-                </select>
-            </div>
-
-            <div class="form-row">
+            <div class="form-row reusable-token-row">
                 <label>Reusable Token</label>
                 <input type="checkbox" id="chkReusable" />
             </div>
 
-            <div class="form-row">
-                <label>Use 3DS</label>
-                <input type="checkbox" id="chk3Ds" name="3ds" />
-            </div>
-
-            <div class="form-row">
-                <label>Authorise Only</label>
-                <input type="checkbox" id="chkAuthoriseOnly" name="authoriseOnly" />
-            </div>
-
             <div class="header">Billing address</div>
+
             <div class="form-row">
                 <label>
                     Address 1
@@ -152,7 +99,7 @@
                 <label>
                     Country Code
                 </label>
-                <input type="text" id="country-code" name="countryCode" value="GB" />
+                <input type="text" id="country-code" name="countryCode" data-worldpay="country-code" value="GB" />
             </div>
 
             <div class="header">Delivery address</div>
@@ -226,6 +173,18 @@
                 <input type="text" id="statement-narrative" maxlength="24" name="statement-narrative" value="Statement Narrative" />
             </div>
 
+            <div class="form-row language-code-row">
+                <label>Shopper Language Code</label>
+                <input type="text" id="language-code" maxlength="2" data-worldpay="language-code" value="EN" />
+            </div>
+
+            <div class="form-row swift-code-row" style="display:none">
+                <label>
+                    Swift Code
+                </label>
+                <input type="text" id="swift-code" value="NWBKGB21" />
+            </div>
+
             <div class="form-row large">
                 <label class='left'>
                     Customer Identifiers (json)
@@ -234,13 +193,11 @@
             </div>
 
             <input type="submit" id="place-order" value="Place Order" />
-            </div>
 
             <div class="token"></div>
+            <div class="apmName"></div>
 
         </form>
-
-    </div>
 
 <small>
     
@@ -252,6 +209,7 @@
         }
         else {
             // Set client key
+            Worldpay.tokenType = 'apm';
             Worldpay.setClientKey("your-client-key");
             // Get form element
             var form = $('#my-payment-form')[0];
@@ -263,21 +221,54 @@
                 } else {
                     var token = response.token;
                     Worldpay.formBuilder(form, 'input', 'hidden', 'token', token);
+                    Worldpay.formBuilder(form, 'input', 'hidden', 'apmName', $('#apm-name').val());
                     $('#my-payment-form .token').html("Your token is: " + token);
                     form.submit();
                 }
             });
 
+            $('#chkReusable').prop('checked', false);
+
+
             $('#chkReusable').change(function(){
-                if ($(this).is(':checked')) {
+                if ($(this).is(':checked') && $('#apm-name').val() != 'giropay') {
                     Worldpay.reusable = true;
                 }
                 else {
                     Worldpay.reusable = false;
                 }
             });
+
+            $('#apm-name').on('change', function(){
+                if ($(this).val() == 'giropay') {
+                    Worldpay.reusable = false;
+                    $('#swift-code').attr('data-worldpay-apm','swiftCode');
+                    $('.swift-code-row').show();
+
+                    //No language code for Giropay
+                    $('#language-code').removeAttr('data-worldpay');
+                    $('.language-code-row').hide();
+
+                    //Reusable token option is not available for Giropay
+                    $('.reusable-token-row').hide();
+
+                    //Set acceptance currency to EUR
+                    $('#currency').val('EUR');
+                }
+                else {
+                    //we don't want to send swift code to the api if the apm is not Giropay
+                    $('#swift-code').removeAttr('data-worldpay-apm');
+                    $('.swift-code-row').hide();
+                    $('.reusable-token-row').show();
+
+                    //language code enabled by default
+                    $('#language-code').attr('data-worldpay','language-code');
+                    $('.language-code-row').show();
+
+                    $('#currency').val('GBP');
+                }
+            });
         }
-        $('#chkReusable').prop('checked', false);
     </script>
 
 </body>

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * PHP library version: v1.6
+ * PHP library version: v1.7
  */
 
 final class Worldpay
@@ -16,7 +16,7 @@ final class Worldpay
     private $disable_ssl = false;
     private $endpoint = 'https://api.worldpay.com/v1/';
     private static $use_external_JSON = false;
-    private $order_types = ['ECOM', 'MOTO', 'RECURRING'];
+    private $order_types = array('ECOM', 'MOTO', 'RECURRING');
 
     private static $errors = array(
         "ip"        => "Invalid parameters",
@@ -126,7 +126,7 @@ final class Worldpay
         if (!isset($order['orderDescription'])) {
             $errors[] = self::$errors['orderInput']['orderDescription'];
         }
-        if (!isset($order['amount']) || !($order['amount'] > 0) || $this->isFloat($order['amount'])) {
+        if (!isset($order['amount']) || ($order['amount'] > 0 && $this->isFloat($order['amount']))) {
             $errors[] = self::$errors['orderInput']['amount'];
         }
         if (!isset($order['currencyCode'])) {
@@ -163,20 +163,10 @@ final class Worldpay
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
         curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout);
 
-        $arch = 'x86';
-        switch(PHP_INT_SIZE) {
-            case 4:
-                $arch = 'x86';
-                break;
-            case 8:
-                $arch = 'x64';
-                break;
-            default:
-                $arch = 'x64';
-        }
+        $arch = (bool)((1<<32)-1) ? 'x64' : 'x86';
 
         $clientUserAgent = 'os.name=' . php_uname('s') . ';os.version=' . php_uname('r') . ';os.arch=' .
-        $arch . ';lang.version='. phpversion() . ';lib.version=v1.6;' .
+        $arch . ';lang.version='. phpversion() . ';lib.version=v1.7;' .
         'api.version=v1;lang=php;owner=worldpay';
 
         curl_setopt(
@@ -197,7 +187,6 @@ final class Worldpay
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         }
 
-
         $result = curl_exec($ch);
         $info = curl_getinfo($ch);
         $err = curl_error($ch);
@@ -208,7 +197,7 @@ final class Worldpay
         if ($result === false) {
             if ($errno === 60) {
                 self::onError('sslerror', false, $errno, null, $err);
-            } else if ($errno === 28) {
+            } elseif ($errno === 28) {
                 self::onError('timeouterror', false, $errno, null, $err);
             } else {
                 self::onError('uanv', false, $errno, null, $err);
@@ -260,19 +249,77 @@ final class Worldpay
 
 
     /**
+     * Create Worldpay APM order
+     * @param array $order
+     * @return array Worldpay order response
+     * */
+    public function createApmOrder($order = array())
+    {
+
+        $this->checkOrderInput($order);
+
+        $defaults = array(
+            'deliveryAddress' => null,
+            'billingAddress' => null,
+            'successUrl' => null,
+            'pendingUrl' => null,
+            'failureUrl' => null,
+            'cancelUrl' => null
+        );
+
+        $order = array_merge($defaults, $order);
+
+        $obj = array(
+            "token" => $order['token'],
+            "orderDescription" => $order['orderDescription'],
+            "amount" => $order['amount'],
+            "currencyCode" => $order['currencyCode'],
+            "name" => $order['name'],
+            "billingAddress" => $order['billingAddress'],
+            "deliveryAddress" => $order['deliveryAddress'],
+            "customerOrderCode" => $order['customerOrderCode'],
+            "successUrl" => $order['successUrl'],
+            "pendingUrl" => $order['pendingUrl'],
+            "failureUrl" => $order['failureUrl'],
+            "cancelUrl" => $order['cancelUrl']
+        );
+
+        if (isset($order['statementNarrative'])) {
+            $obj['statementNarrative'] = $order['statementNarrative'];
+        }
+        if (!empty($order['settlementCurrency'])) {
+            $obj['settlementCurrency'] = $order['settlementCurrency'];
+        }
+        if (!empty($order['customerIdentifiers'])) {
+            $obj['customerIdentifiers'] = $order['customerIdentifiers'];
+        }
+
+        $json = json_encode($obj);
+
+        $response = $this->sendRequest('orders', $json, true);
+
+        if (isset($response["orderCode"])) {
+            //success
+            return $response;
+        } else {
+            self::onError("apierror");
+        }
+    }
+
+
+    /**
      * Create Worldpay order
      * @param array $order
      * @return array Worldpay order response
      * */
     public function createOrder($order = array())
     {
-
         $this->checkOrderInput($order);
 
         $defaults = array(
             'orderType' => 'ECOM',
-            'customerIdentifiers' => null,
             'billingAddress' => null,
+            'deliveryAddress' => null,
             'is3DSOrder' => false,
             'authoriseOnly' => false,
             'redirectURL' => false
@@ -290,8 +337,8 @@ final class Worldpay
             "orderType" => (in_array($order['orderType'], $this->order_types)) ? $order['orderType'] : 'ECOM',
             "authorizeOnly" => ($order['authoriseOnly']) ? true : false,
             "billingAddress" => $order['billingAddress'],
-            "customerOrderCode" => $order['customerOrderCode'],
-            "customerIdentifiers" => $order['customerIdentifiers']
+            "deliveryAddress" => $order['deliveryAddress'],
+            "customerOrderCode" => $order['customerOrderCode']
         );
 
         if ($obj['is3DSOrder']) {
@@ -302,8 +349,17 @@ final class Worldpay
             $obj['shopperAcceptHeader'] = isset($_SERVER['HTTP_ACCEPT']) ? $_SERVER['HTTP_ACCEPT'] : '';
         }
 
-        $json = json_encode($obj);
+        if (isset($order['statementNarrative'])) {
+            $obj['statementNarrative'] = $order['statementNarrative'];
+        }
+        if (!empty($order['settlementCurrency'])) {
+            $obj['settlementCurrency'] = $order['settlementCurrency'];
+        }
+        if (!empty($order['customerIdentifiers'])) {
+            $obj['customerIdentifiers'] = $order['customerIdentifiers'];
+        }
 
+        $json = json_encode($obj);
         $response = $this->sendRequest('orders', $json, true);
 
         if (isset($response["orderCode"])) {
@@ -382,6 +438,24 @@ final class Worldpay
         }
 
         $this->sendRequest('orders/' . $orderCode . '/refund', $json, false);
+    }
+
+    /**
+     * Get a Worldpay order
+     * @param string $orderCode
+     * @return array Worldpay order response
+     * */
+    public function getOrder($orderCode = false)
+    {
+        if (empty($orderCode) || !is_string($orderCode)) {
+            self::onError('ip', self::$errors['orderInput']['token']);
+        }
+        $response = $this->sendRequest('orders/' . $orderCode, false, true, 'GET');
+
+        if (!isset($response["orderCode"])) {
+            self::onError("apierror");
+        }
+        return $response;
     }
 
     /**

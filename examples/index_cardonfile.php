@@ -5,18 +5,19 @@
         <form method="post" action="create_order.php" id="my-payment-form">
             <div class="payment-errors"></div>
             <div class="header">Checkout</div>
+
             <div class="form-row">
                 <label>
                     Name
                 </label>
-                <input type="text" id="name" name="name" data-worldpay="name" value="Example Name" />
+                <input type="text" id="name" name="name" placeholder="Example Name" />
             </div>
 
             <div class="form-row">
                 <label>
-                    Card Number
+                    Token
                 </label>
-                <input type="text" id="card" size="20" data-worldpay="number" value="4444333322221111" />
+                <input type="text" id="token" data-worldpay="token" value="" />
 
             </div>
 
@@ -25,39 +26,9 @@
                 <label>
                     CVC
                 </label>
-                <input type="text" id="cvc" size="4" data-worldpay="cvc" value="321" />
+                <input type="text" id="cvc" size="4" data-worldpay="cvc" placeholder="321" />
             </div>
 
-
-            <div class="form-row">
-                <label>
-                    Expiration (MM/YYYY)
-                </label>
-                <select id="expiration-month" data-worldpay="exp-month">
-                    <option value="01">01</option>
-                    <option value="02">02</option>
-                    <option value="03">03</option>
-                    <option value="04">04</option>
-                    <option value="05">05</option>
-                    <option value="06">06</option>
-                    <option value="07">07</option>
-                    <option value="08">08</option>
-                    <option value="09">09</option>
-                    <option value="10" selected="selected">10</option>
-                    <option value="11">11</option>
-                    <option value="12">12</option>
-                </select>
-                <span> / </span>
-                <select id="expiration-year" data-worldpay="exp-year">
-                    <option value="2015">2015</option>
-                    <option value="2016" selected="selected">2016</option>
-                    <option value="2017">2017</option>
-                    <option value="2018">2018</option>
-                    <option value="2019">2019</option>
-                    <option value="2020">2020</option>
-                    <option value="2021">2021</option>
-                </select>
-            </div>
 
             <div class="form-row">
                 <label>
@@ -76,8 +47,7 @@
             <div class="form-row">
                 <label>Settlement Currency</label>
                  <select id="order-type" name="settlement-currency">
-                    <option value="" selected></option>
-                    <option value="USD">USD</option>
+                    <option value="USD" selected>USD</option>
                     <option value="GBP">GBP</option>
                     <option value="EUR">EUR</option>
                     <option value="CAD">CAD</option>
@@ -98,12 +68,7 @@
             </div>
 
             <div class="form-row">
-                <label>Reusable Token</label>
-                <input type="checkbox" id="chkReusable" />
-            </div>
-
-            <div class="form-row">
-                <label>Use 3DS</label>
+                <label>Use 3DS </label>
                 <input type="checkbox" id="chk3Ds" name="3ds" />
             </div>
 
@@ -113,6 +78,7 @@
             </div>
 
             <div class="header">Billing address</div>
+
             <div class="form-row">
                 <label>
                     Address 1
@@ -156,6 +122,7 @@
             </div>
 
             <div class="header">Delivery address</div>
+
             <div class="form-row">
                 <label>
                     First Name
@@ -214,7 +181,7 @@
 
             <div class="form-row">
                 <label>
-                    Order Description
+                    Description
                 </label>
                 <input type="text" id="description" name="description" value="My test order" />
             </div>
@@ -226,14 +193,8 @@
                 <input type="text" id="statement-narrative" maxlength="24" name="statement-narrative" value="Statement Narrative" />
             </div>
 
-            <div class="form-row large">
-                <label class='left'>
-                    Customer Identifiers (json)
-                </label>
-                <textarea id="customer-identifiers" rows="6" cols="30" name="customer-identifiers"></textarea>
-            </div>
 
-            <input type="submit" id="place-order" value="Place Order" />
+                <input type="submit" id="place-order" value="Place Order" />
             </div>
 
             <div class="token"></div>
@@ -261,12 +222,11 @@
                 } else if (status != 200) {
                     Worldpay.handleError(form, $('#my-payment-form .payment-errors')[0], response);
                 } else {
-                    var token = response.token;
+                    var token = $('#token').val();
                     Worldpay.formBuilder(form, 'input', 'hidden', 'token', token);
-                    $('#my-payment-form .token').html("Your token is: " + token);
                     form.submit();
                 }
-            });
+            }, true);
 
             $('#chkReusable').change(function(){
                 if ($(this).is(':checked')) {

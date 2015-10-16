@@ -1,3 +1,7 @@
+### 1.7 2015-10-16
+* Support Zero Auth
+
+
 ### 1.6 2015-05-27
 * Check is_numeric instead of is_int for Captures
 

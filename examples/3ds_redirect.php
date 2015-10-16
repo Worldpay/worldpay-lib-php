@@ -2,7 +2,7 @@
 <?php
 
 /**
- * PHP library version: v1.6
+ * PHP library version: v1.7
  */
 require_once('../lib/worldpay.php');
 
@@ -17,19 +17,20 @@ include('header.php');
 
 try {
     $response = $worldpay->authorise3DSOrder($_SESSION['orderCode'], $_POST['PaRes']);
-    
-    if (isset($response['paymentStatus']) && $response['paymentStatus'] == 'SUCCESS') {
+
+    if (isset($response['paymentStatus']) && ($response['paymentStatus'] == 'SUCCESS' ||  $response['paymentStatus'] == 'AUTHORIZED')) {
         echo 'Order Code: ' . $_SESSION['orderCode'] . ' has been authorised <br/>';
     } else {
+        var_dump($response);
         echo 'There was a problem authorising 3DS order <br/>';
     }
 } catch (WorldpayException $e) { // PHP 5.3+
     // Worldpay has thrown an exception
-    echo 'Error code: ' . $e->getCustomCode() . '<br/> 
-    HTTP status code:' . $e->getHttpStatusCode() . '<br/> 
+    echo 'Error code: ' . $e->getCustomCode() . '<br/>
+    HTTP status code:' . $e->getHttpStatusCode() . '<br/>
     Error description: ' . $e->getDescription()  . ' <br/>
     Error message: ' . $e->getMessage() . ' <br/>' .
     'PaRes: ' . print_r($_POST, true) . '<br/>';
-} catch (Exception $e) {  // PHP 5.2 
+} catch (Exception $e) {  // PHP 5.2
     echo 'Error message: '. $e->getMessage();
 }
