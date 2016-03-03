@@ -1,7 +1,7 @@
 <?php
 
 /**
- * PHP library version: v1.7
+ * PHP library version: 1.8
  */
 
 final class Worldpay
@@ -15,8 +15,10 @@ final class Worldpay
     private $timeout = 65;
     private $disable_ssl = false;
     private $endpoint = 'https://api.worldpay.com/v1/';
-    private static $use_external_JSON = false;
     private $order_types = array('ECOM', 'MOTO', 'RECURRING');
+    private $pluginName = false;
+    private $pluginVersion = false;
+
 
     private static $errors = array(
         "ip"        => "Invalid parameters",
@@ -30,6 +32,7 @@ final class Worldpay
         'verify'    => 'Worldpay not verifiying SSL connection',
         'orderInput'=> array(
             'token'             => 'No token found',
+            'orderCode'         => 'No order_code entered',
             'orderDescription'  => 'No order_description found',
             'amount'            => 'No amount found, or it is not a whole number',
             'currencyCode'      => 'No currency_code found',
@@ -47,7 +50,8 @@ final class Worldpay
         'json'      => 'JSON could not be decoded',
         'key'       => 'Please enter your service key',
         'sslerror'  => 'Worldpay SSL certificate could not be validated',
-        'timeouterror'=> 'Gateway timeout - possible order failure. Please review the order in the portal to confirm success.'
+        'timeouterror'=> 'Gateway timeout - possible order failure. 
+            Please review the order in the portal to confirm success.'
     );
 
     /**
@@ -76,6 +80,26 @@ final class Worldpay
     }
 
     /**
+     * Set api endpoint
+     * @param string
+     * */
+    public function setEndpoint($endpoint)
+    {
+        $this->endpoint = $endpoint;
+    }
+
+    /**
+     * Set plugin data
+     * @param string
+     * @param string
+     * */
+    public function setPluginData($name, $version)
+    {
+        $this->pluginName = $name;
+        $this->pluginVersion = $version;
+    }
+
+    /**
      * Gets the client IP by checking $_SERVER
      * @return string
      * */
@@ -83,7 +107,9 @@ final class Worldpay
     {
         $ipaddress = '';
 
-        if (isset($_SERVER['HTTP_CLIENT_IP'])) {
+        if (isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+            $ipaddress = $_SERVER['HTTP_CF_CONNECTING_IP'];
+        } elseif (isset($_SERVER['HTTP_CLIENT_IP'])) {
             $ipaddress = $_SERVER['HTTP_CLIENT_IP'];
         } elseif (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             $ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
@@ -110,6 +136,16 @@ final class Worldpay
         return !!strpos($number, '.');
     }
 
+     /**
+     * Checks if order is a direct order
+     * @param Object $order
+     * @return bool
+     * */
+    private function orderIsDirect($order)
+    {
+        return isset($order['paymentMethod']) && !empty($order['paymentMethod']);
+    }
+
     /**
      * Checks order input array for validity
      * @param array $order
@@ -120,7 +156,7 @@ final class Worldpay
         if (empty($order) || !is_array($order)) {
             self::onError('ip');
         }
-        if (!isset($order['token'])) {
+        if (!isset($order['token']) && !isset($order['paymentMethod'])) {
             $errors[] = self::$errors['orderInput']['token'];
         }
         if (!isset($order['orderDescription'])) {
@@ -166,8 +202,15 @@ final class Worldpay
         $arch = (bool)((1<<32)-1) ? 'x64' : 'x86';
 
         $clientUserAgent = 'os.name=' . php_uname('s') . ';os.version=' . php_uname('r') . ';os.arch=' .
-        $arch . ';lang.version='. phpversion() . ';lib.version=v1.7;' .
+        $arch . ';lang.version='. phpversion() . ';lib.version=1.8;' .
         'api.version=v1;lang=php;owner=worldpay';
+
+        if ($this->pluginName) {
+             $clientUserAgent .= ';plugin.name=' + $this->pluginName;
+        }
+        if ($this->pluginVersion) {
+             $clientUserAgent .= ';plugin.version=' + $this->pluginVersion;
+        }
 
         curl_setopt(
             $ch,
@@ -247,6 +290,70 @@ final class Worldpay
         return $response;
     }
 
+ /**
+     * Get paymentMethod object for APM order
+     * @param array $order
+     * @return array paymentMethod object
+     * */
+    private function getPaymentMethodObjectForAPMOrder($order = array())
+    {
+        $paymentMethod = array();
+
+        if (isset($order['paymentMethod'])) {
+            $_orderPM = $order['paymentMethod'];
+            $_apmName = isset($_orderPM['apmName']) ? $_orderPM['apmName'] : "";
+            $_shopperCountryCode = isset($_orderPM['shopperCountryCode']) ? $_orderPM['shopperCountryCode'] : "";
+            $_apmFields = isset($_orderPM['apmFields']) ? $_orderPM['apmFields'] : new stdClass();
+
+            $paymentMethod = array(
+                  "type" => "APM",
+                  "apmName" => $_apmName,
+                  "shopperCountryCode" => $_shopperCountryCode,
+                  "apmFields" => $_apmFields
+            );
+        }
+
+        return $paymentMethod;
+    }
+    /**
+     * Get paymentMethod object for order
+     * @param array $order
+     * @return array paymentMethod object
+     * */
+    private function getPaymentMethodObjectForOrder($order = array())
+    {
+        $paymentMethod = array();
+
+        if (isset($order['paymentMethod'])) {
+            $_orderPM = $order['paymentMethod'];
+            $_name = isset($_orderPM['name']) ? $_orderPM['name'] : "";
+            $_expiryMonth = isset($_orderPM['expiryMonth']) ? $_orderPM['expiryMonth'] : "";
+            $_expiryYear = isset($_orderPM['expiryYear']) ? $_orderPM['expiryYear'] : "";
+            $_cardNumber = isset($_orderPM['cardNumber']) ? $_orderPM['cardNumber'] : "";
+            $_cvc = isset($_orderPM['cvc']) ? $_orderPM['cvc'] : "";
+
+            $paymentMethod = array(
+                  "type" => "Card",
+                  "name" => $_name,
+                  "expiryMonth" => $_expiryMonth,
+                  "expiryYear" => $_expiryYear,
+                  "cardNumber"=> $_cardNumber,
+                  "cvc"=> $_cvc,
+            );
+        }
+
+        return $paymentMethod;
+    }
+
+    private function get3DSShopperObject()
+    {
+        $obj = array();
+        $obj['shopperIpAddress'] = $this->getClientIp();
+        $obj['shopperSessionId'] = $_SESSION['worldpay_sessionid'];
+        $obj['shopperUserAgent'] = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+        $obj['shopperAcceptHeader'] = isset($_SERVER['HTTP_ACCEPT']) ? $_SERVER['HTTP_ACCEPT'] : '';
+        return $obj;
+    }
 
     /**
      * Create Worldpay APM order
@@ -264,25 +371,39 @@ final class Worldpay
             'successUrl' => null,
             'pendingUrl' => null,
             'failureUrl' => null,
-            'cancelUrl' => null
+            'cancelUrl' => null,
+            'shopperEmailAddress' => null,
+            'orderCodePrefix' => null,
+            'orderCodeSuffix' => null,
+            'paymentMethod' => null
         );
 
         $order = array_merge($defaults, $order);
 
         $obj = array(
-            "token" => $order['token'],
             "orderDescription" => $order['orderDescription'],
             "amount" => $order['amount'],
             "currencyCode" => $order['currencyCode'],
             "name" => $order['name'],
+            "shopperEmailAddress" => $order['shopperEmailAddress'],
             "billingAddress" => $order['billingAddress'],
             "deliveryAddress" => $order['deliveryAddress'],
             "customerOrderCode" => $order['customerOrderCode'],
             "successUrl" => $order['successUrl'],
             "pendingUrl" => $order['pendingUrl'],
             "failureUrl" => $order['failureUrl'],
-            "cancelUrl" => $order['cancelUrl']
+            "cancelUrl" => $order['cancelUrl'],
+            "orderCodePrefix" => $order['orderCodePrefix'],
+            "orderCodeSuffix" => $order['orderCodeSuffix']
         );
+
+        if (!$this->orderIsDirect($order)) {
+            $obj['token'] = $order['token'];
+        } else {
+            $obj['reusable'] = isset($order['reusable']) ? $order['reusable'] : false;
+            $obj['shopperLanguageCode'] = isset($order['shopperLanguageCode']) ? $order['shopperLanguageCode'] : "";
+            $obj['paymentMethod'] = $this->getPaymentMethodObjectForAPMOrder($order);
+        }
 
         if (isset($order['statementNarrative'])) {
             $obj['statementNarrative'] = $order['statementNarrative'];
@@ -322,33 +443,47 @@ final class Worldpay
             'deliveryAddress' => null,
             'is3DSOrder' => false,
             'authoriseOnly' => false,
-            'redirectURL' => false
+            'redirectURL' => false,
+            'shopperEmailAddress' => null,
+            'orderCodePrefix' => null,
+            'orderCodeSuffix' => null,
+            'paymentMethod' => null
         );
 
         $order = array_merge($defaults, $order);
 
         $obj = array(
-            "token" => $order['token'],
             "orderDescription" => $order['orderDescription'],
             "amount" => $order['amount'],
             "is3DSOrder" => ($order['is3DSOrder']) ? true : false,
             "currencyCode" => $order['currencyCode'],
             "name" => $order['name'],
+            "shopperEmailAddress" => $order['shopperEmailAddress'],
             "orderType" => (in_array($order['orderType'], $this->order_types)) ? $order['orderType'] : 'ECOM',
             "authorizeOnly" => ($order['authoriseOnly']) ? true : false,
             "billingAddress" => $order['billingAddress'],
             "deliveryAddress" => $order['deliveryAddress'],
-            "customerOrderCode" => $order['customerOrderCode']
+            "customerOrderCode" => $order['customerOrderCode'],
+            "orderCodePrefix" => $order['orderCodePrefix'],
+            "orderCodeSuffix" => $order['orderCodeSuffix']
         );
+
+        if (!$this->orderIsDirect($order)) {
+            $obj['token'] = $order['token'];
+        } else {
+            $obj['reusable'] = isset($order['reusable']) ? $order['reusable'] : false;
+            $obj['shopperLanguageCode'] = isset($order['shopperLanguageCode']) ? $order['shopperLanguageCode'] : "";
+            $obj['paymentMethod'] = $this->getPaymentMethodObjectForOrder($order);
+        }
 
         if ($obj['is3DSOrder']) {
             $_SESSION['worldpay_sessionid'] = uniqid();
-            $obj['shopperIpAddress'] = $this->getClientIp();
-            $obj['shopperSessionId'] = $_SESSION['worldpay_sessionid'];
-            $obj['shopperUserAgent'] = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
-            $obj['shopperAcceptHeader'] = isset($_SERVER['HTTP_ACCEPT']) ? $_SERVER['HTTP_ACCEPT'] : '';
+            $obj = array_merge($obj, $this->get3DSShopperObject());
         }
 
+        if (isset($order['siteCode'])) {
+            $obj['siteCode'] = $order['siteCode'];
+        }
         if (isset($order['statementNarrative'])) {
             $obj['statementNarrative'] = $order['statementNarrative'];
         }
@@ -377,13 +512,8 @@ final class Worldpay
      * */
     public function authorise3DSOrder($orderCode, $responseCode)
     {
-        $json = json_encode(array(
-            "threeDSResponseCode" => $responseCode,
-            "shopperSessionId" => $_SESSION['worldpay_sessionid'],
-            "shopperAcceptHeader" => $_SERVER['HTTP_ACCEPT'],
-            "shopperUserAgent" => $_SERVER['HTTP_USER_AGENT'],
-            "shopperIpAddress" => $this->getClientIp()
-        ));
+        $obj = array_merge(array("threeDSResponseCode" => $responseCode), $this->get3DSShopperObject());
+        $json = json_encode($obj);
         return $this->sendRequest('orders/' . $orderCode, $json, true, 'PUT');
     }
 
@@ -448,7 +578,7 @@ final class Worldpay
     public function getOrder($orderCode = false)
     {
         if (empty($orderCode) || !is_string($orderCode)) {
-            self::onError('ip', self::$errors['orderInput']['token']);
+            self::onError('ip', self::$errors['orderInput']['orderCode']);
         }
         $response = $this->sendRequest('orders/' . $orderCode, false, true, 'GET');
 
@@ -521,31 +651,14 @@ final class Worldpay
                 $error_message .=  ' - '. $message;
             }
         }
-
-        if (version_compare(phpversion(), '5.3.0', '>=')) {
-            throw new WorldpayException(
-                $error_message,
-                $code,
-                null,
-                $httpStatusCode,
-                $description,
-                $customCode
-            );
-        } else {
-            throw new Exception(
-                $error_message,
-                $code
-            );
-        }
-    }
-
-    /**
-     * Use external library to do JSON decode
-     * @param bool $external
-     * */
-    public function setExternalJSONDecode($external = false)
-    {
-        self::$use_external_JSON = $external;
+        throw new WorldpayException(
+            $error_message,
+            $code,
+            null,
+            $httpStatusCode,
+            $description,
+            $customCode
+        );
     }
 
     /**
@@ -554,15 +667,7 @@ final class Worldpay
      * */
     public static function handleResponse($response)
     {
-        // Backward compatiblity for JSON
-        if (!function_exists('json_encode') || !function_exists('json_decode') || self::$use_external_JSON) {
-            require_once('JSON.php');
-        }
-        if (self::$use_external_JSON) {
-            return json_decode_external($response, true);
-        } else {
-            return json_decode($response, true);
-        }
+        return json_decode($response, true);
     }
 }
 

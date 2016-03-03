@@ -1,7 +1,7 @@
 
 <?php
 /**
- * PHP library version: v1.7
+ * PHP library version: 1.8
  */
 require_once('../lib/worldpay.php');
 
@@ -12,9 +12,18 @@ $worldpay = new Worldpay("your-service-key");
 // DONT USE IN PRODUCTION
 $worldpay->disableSSLCheck(true);
 
-$token = $_POST['token'];
+$directOrder = isset($_POST['direct-order']) ? $_POST['direct-order'] : false;
+$token = (isset($_POST['token'])) ? $_POST['token'] : null;
 $name = $_POST['name'];
-$amount = $_POST['amount'];
+$shopperEmailAddress = $_POST['shopper-email'];
+
+$amount = 0;
+if (isset($_POST['amount']) && !empty($_POST['amount'])) {
+    $amount = is_numeric($_POST['amount']) ? $_POST['amount']*100 : -1;
+}
+
+$orderType = $_POST['order-type'];
+
 $_3ds = (isset($_POST['3ds'])) ? $_POST['3ds'] : false;
 $authoriseOnly = (isset($_POST['authoriseOnly'])) ? $_POST['authoriseOnly'] : false;
 $customerIdentifiers = (!empty($_POST['customer-identifiers'])) ? json_decode($_POST['customer-identifiers']) : array();
@@ -30,7 +39,7 @@ try {
         "address3"=> $_POST['address3'],
         "postalCode"=> $_POST['postcode'],
         "city"=> $_POST['city'],
-        "state"=> '',
+        "state"=> $_POST['state'],
         "countryCode"=> $_POST['countryCode']
     );
 
@@ -43,52 +52,128 @@ try {
         "address3"=> $_POST['delivery-address3'],
         "postalCode"=> $_POST['delivery-postcode'],
         "city"=> $_POST['delivery-city'],
-        "state"=> '',
+        "state"=> $_POST['delivery-state'],
         "countryCode"=> $_POST['delivery-countryCode']
     );
-    $response = $worldpay->createOrder(array(
-        'token' => $token, // The token from WorldpayJS
-        'orderDescription' => $_POST['description'], // Order description of your choice
-        'amount' => $amount*100, // Amount in pence
-        'is3DSOrder' => $_3ds, // 3DS
-        'authoriseOnly' => $authoriseOnly,
-        'orderType' => $_POST['order-type'], //Order Type: ECOM/MOTO/RECURRING
-        'currencyCode' => $_POST['currency'], // Currency code
-        'settlementCurrency' => $_POST['settlement-currency'], // Settlement currency code
-        'name' => ($_3ds) ? '3D' : $name, // Customer name
-        'billingAddress' => $billing_address, // Billing address array
-        'deliveryAddress' => $delivery_address, // Delivery address array
-        'customerIdentifiers' => (!is_null($customerIdentifiers)) ? $customerIdentifiers : array(), // Custom indentifiers
-        'statementNarrative' => $_POST['statement-narrative'],
-        'customerOrderCode' => 'A123' // Order code of your choice
-    ));
 
-    if ($response['paymentStatus'] === 'SUCCESS' ||  $response['paymentStatus'] === 'AUTHORIZED') {
-        // Create order was successful!
-        $worldpayOrderCode = $response['orderCode'];
-        echo '<p>Order Code: <span id="order-code">' . $worldpayOrderCode . '</span></p>';
-        echo '<p>Token: <span id="token">' . $response['token'] . '</span></p>';
-        echo '<p>Payment Status: <span id="payment-status">' . $response['paymentStatus'] . '</span></p>';
-        echo '<pre>' . print_r($response, true). '</pre>';
-        // TODO: Store the order code somewhere..
-    } elseif ($response['is3DSOrder']) {
-        // Redirect to URL
-        // STORE order code in session
-        $_SESSION['orderCode'] = $response['orderCode'];
-        ?>
-        <form id="submitForm" method="post" action="<?php echo $response['redirectURL'] ?>">
-            <input type="hidden" name="PaReq" value="<?php echo $response['oneTime3DsToken']; ?>"/>
-            <input type="hidden" id="termUrl" name="TermUrl" value="http://localhost/3ds_redirect.php"/>
+    if ($orderType == 'APM') {
+
+        $obj = array(
+            'orderDescription' => $_POST['description'], // Order description of your choice
+            'amount' => $amount, // Amount in pence
+            'currencyCode' => $_POST['currency'], // Currency code
+            'settlementCurrency' => $_POST['settlement-currency'], // Settlement currency code
+            'name' => $name, // Customer name
+            'shopperEmailAddress' => $shopperEmailAddress, // Shopper email address
+            'billingAddress' => $billing_address, // Billing address array
+            'deliveryAddress' => $delivery_address, // Delivery address array
+            'customerIdentifiers' => (!is_null($customerIdentifiers)) ? $customerIdentifiers : array(), // Custom indentifiers
+            'statementNarrative' => $_POST['statement-narrative'],
+            'orderCodePrefix' => $_POST['code-prefix'],
+            'orderCodeSuffix' => $_POST['code-suffix'],
+            'customerOrderCode' => 'A123', // Order code of your choice
+            'successUrl' => $_POST['success-url'], //Success redirect url for APM
+            'pendingUrl' => $_POST['pending-url'], //Pending redirect url for APM
+            'failureUrl' => $_POST['failure-url'], //Failure redirect url for APM
+            'cancelUrl' => $_POST['cancel-url'] //Cancel redirect url for APM
+        );
+
+        if ($directOrder) {
+            $obj['shopperLanguageCode'] = isset($_POST['language-code']) ? $_POST['language-code'] : "";
+            $obj['reusable'] = (isset($_POST['chkReusable']) && $_POST['chkReusable'] == 'on') ? true : false;
+            $obj['paymentMethod'] = array(
+                  "apmName" => $_POST['apm-name'],
+                  "shopperCountryCode" => 'GB',
+                  "apmFields" => isset($_POST['swiftCode']) ? array('swiftCode' => $_POST['swiftCode']) : new stdClass()
+            );
+        }
+        else {
+            $obj['token'] = $token; // The token from WorldpayJS
+        }
+
+        $response = $worldpay->createApmOrder($obj);
+
+        if ($response['paymentStatus'] === 'PRE_AUTHORIZED') {
+            // Redirect to URL
+            $_SESSION['orderCode'] = $response['orderCode'];
+            ?>
             <script>
-                document.getElementById('termUrl').value = window.location.href.replace('create_order.php', '3ds_redirect.php');
-                document.getElementById('submitForm').submit();
+                window.location.replace("<?php echo $response['redirectURL'] ?>");
             </script>
-        </form>
-        <?php
-    } else {
-        // Something went wrong
-        echo '<p id="payment-status">' . $response['paymentStatus'] . '</p>';
-        throw new WorldpayException(print_r($response, true));
+            <?php
+        } else {
+            // Something went wrong
+            echo '<p id="payment-status">' . $response['paymentStatus'] . '</p>';
+            throw new WorldpayException(print_r($response, true));
+        }
+
+    }
+    else {
+
+        $obj = array(
+            'orderDescription' => $_POST['description'], // Order description of your choice
+            'amount' => $amount, // Amount in pence
+            'is3DSOrder' => $_3ds, // 3DS
+            'authoriseOnly' => $authoriseOnly,
+            'siteCode' => $_POST['site-code'],
+            'orderType' => $_POST['order-type'], //Order Type: ECOM/MOTO/RECURRING
+            'currencyCode' => $_POST['currency'], // Currency code
+            'settlementCurrency' => $_POST['settlement-currency'], // Settlement currency code
+            'name' => ($_3ds && true) ? '3D' : $name, // Customer name
+            'shopperEmailAddress' => $shopperEmailAddress, // Shopper email address
+            'billingAddress' => $billing_address, // Billing address array
+            'deliveryAddress' => $delivery_address, // Delivery address array
+            'customerIdentifiers' => (!is_null($customerIdentifiers)) ? $customerIdentifiers : array(), // Custom indentifiers
+            'statementNarrative' => $_POST['statement-narrative'],
+            'orderCodePrefix' => $_POST['code-prefix'],
+            'orderCodeSuffix' => $_POST['code-suffix'],
+            'customerOrderCode' => 'A123' // Order code of your choice
+        );
+
+        if ($directOrder) {
+            $obj['shopperLanguageCode'] = isset($_POST['language-code']) ? $_POST['language-code'] : "";
+            $obj['reusable'] = (isset($_POST['chkReusable']) && $_POST['chkReusable'] == 'on') ? true : false;
+            $obj['paymentMethod'] = array(
+                  "name" => $_POST['name'],
+                  "expiryMonth" => $_POST['expiration-month'],
+                  "expiryYear" => $_POST['expiration-year'],
+                  "cardNumber"=>$_POST['card'],
+                  "cvc"=>$_POST['cvc']
+            );
+        }
+        else {
+            $obj['token'] = $token; // The token from WorldpayJS
+        }
+
+        $response = $worldpay->createOrder($obj);
+
+        if ($response['paymentStatus'] === 'SUCCESS' ||  $response['paymentStatus'] === 'AUTHORIZED') {
+            // Create order was successful!
+            $worldpayOrderCode = $response['orderCode'];
+            echo '<p>Order Code: <span id="order-code">' . $worldpayOrderCode . '</span></p>';
+            echo '<p>Token: <span id="token">' . $response['token'] . '</span></p>';
+            echo '<p>Payment Status: <span id="payment-status">' . $response['paymentStatus'] . '</span></p>';
+            echo '<pre>' . print_r($response, true). '</pre>';
+            // TODO: Store the order code somewhere..
+        } elseif ($response['is3DSOrder']) {
+            // Redirect to URL
+            // STORE order code in session
+            $_SESSION['orderCode'] = $response['orderCode'];
+            ?>
+            <form id="submitForm" method="post" action="<?php echo $response['redirectURL'] ?>">
+                <input type="hidden" name="PaReq" value="<?php echo $response['oneTime3DsToken']; ?>"/>
+                <input type="hidden" id="termUrl" name="TermUrl" value="http://localhost/3ds_redirect.php"/>
+                <script>
+                    document.getElementById('termUrl').value = window.location.href.replace('create_order.php', '3ds_redirect.php');
+                    document.getElementById('submitForm').submit();
+                </script>
+            </form>
+            <?php
+        } else {
+            // Something went wrong
+            echo '<p id="payment-status">' . $response['paymentStatus'] . '</p>';
+            throw new WorldpayException(print_r($response, true));
+        }
     }
 } catch (WorldpayException $e) { // PHP 5.3+
     // Worldpay has thrown an exception
@@ -96,6 +181,4 @@ try {
     HTTP status code:' . $e->getHttpStatusCode() . '<br/>
     Error description: ' . $e->getDescription()  . ' <br/>
     Error message: ' . $e->getMessage();
-} catch (Exception $e) {  // PHP 5.2
-    echo 'Error message: '. $e->getMessage();
 }

@@ -1,10 +1,46 @@
 
- <?php include("header.php"); ?>
+ <?php
+    include("header.php");
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+    $redirect_url = $protocol . $_SERVER['HTTP_HOST'] . "/apm";
+ ?>
         <script src="https://cdn.worldpay.com/v1/worldpay.js"></script>
         <h1>PHP Library Create Order Example</h1>
         <form method="post" action="create_order.php" id="my-payment-form">
             <div class="payment-errors"></div>
             <div class="header">Checkout</div>
+
+            <div class="form-row">
+                <label>Direct Order?</label>
+                 <select id="direct-order" name="direct-order">
+                    <option value="1">Yes</option>
+                    <option value="0" selected>No</option>
+                </select>
+            </div>
+
+           <div class="form-row">
+                <label>Order Type</label>
+                 <select id="order-type" name="order-type">
+                    <option value="ECOM" selected>ECOM</option>
+                    <option value="MOTO">MOTO</option>
+                    <option value="RECURRING">RECURRING</option>
+                    <option value="APM">APM</option>
+                </select>
+            </div>
+
+            <div class="form-row apm" style="display:none;">
+                <label>APM</label>
+                <select id="apm-name" data-worldpay="apm-name">
+                    <option value="paypal" selected="selected">PayPal</option>
+                    <option value="giropay">Giropay</option>
+                </select>
+            </div>
+
+            <div class="form-row no-apm">
+                <label>Site Code</label>
+                <input type="text" id="site-code" name="site-code" value="N/A" />
+            </div>
+
             <div class="form-row">
                 <label>
                     Name
@@ -12,7 +48,35 @@
                 <input type="text" id="name" name="name" data-worldpay="name" value="Example Name" />
             </div>
 
-            <div class="form-row">
+             <div class="form-row apm apm-url" style="display:none;">
+                <label>
+                    Success URL
+                </label>
+                <input type="text" id="success-url" name="success-url" placeholder="<?php echo $redirect_url . '/success.php';?>"/>
+            </div>
+
+             <div class="form-row apm apm-url" style="display:none;">
+                <label>
+                    Cancel URL
+                </label>
+                <input type="text" id="cancel-url" name="cancel-url" placeholder="<?php echo $redirect_url . '/cancel.php';?>"/>
+            </div>
+
+             <div class="form-row apm apm-url" style="display:none;">
+                <label>
+                    Failure URL
+                </label>
+                <input type="text" id="failure-url" name="failure-url" placeholder="<?php echo $redirect_url . '/error.php';?>"/>
+            </div>
+
+             <div class="form-row apm apm-url" style="display:none;">
+                <label>
+                    Pending URL
+                </label>
+                <input type="text" id="pending-url" name="pending-url" placeholder="<?php echo $redirect_url . '/pending.php';?>"/>
+            </div>
+
+            <div class="form-row no-apm">
                 <label>
                     Card Number
                 </label>
@@ -21,7 +85,7 @@
             </div>
 
 
-            <div class="form-row">
+            <div class="form-row no-apm">
                 <label>
                     CVC
                 </label>
@@ -29,7 +93,7 @@
             </div>
 
 
-            <div class="form-row">
+            <div class="form-row no-apm">
                 <label>
                     Expiration (MM/YYYY)
                 </label>
@@ -49,13 +113,13 @@
                 </select>
                 <span> / </span>
                 <select id="expiration-year" data-worldpay="exp-year">
-                    <option value="2015">2015</option>
                     <option value="2016" selected="selected">2016</option>
                     <option value="2017">2017</option>
                     <option value="2018">2018</option>
                     <option value="2019">2019</option>
                     <option value="2020">2020</option>
                     <option value="2021">2021</option>
+                    <option value="2022">2022</option>
                 </select>
             </div>
 
@@ -75,7 +139,7 @@
 
             <div class="form-row">
                 <label>Settlement Currency</label>
-                 <select id="order-type" name="settlement-currency">
+                 <select id="settlement-currency" name="settlement-currency">
                     <option value="" selected></option>
                     <option value="USD">USD</option>
                     <option value="GBP">GBP</option>
@@ -89,25 +153,17 @@
                 </select>
             </div>
 
-            <div class="form-row">
-                <label>Order Type</label>
-                 <select id="order-type" name="order-type">
-                    <option value="ECOM" selected>ECOM</option>
-                    <option value="MOTO">MOTO</option>
-                </select>
-            </div>
-
-            <div class="form-row">
+            <div class="form-row reusable-token-row">
                 <label>Reusable Token</label>
-                <input type="checkbox" id="chkReusable" />
+                <input type="checkbox" id="chkReusable" name="chkReusable"/>
             </div>
 
-            <div class="form-row">
+            <div class="form-row no-apm">
                 <label>Use 3DS</label>
                 <input type="checkbox" id="chk3Ds" name="3ds" />
             </div>
 
-            <div class="form-row">
+            <div class="form-row no-apm">
                 <label>Authorise Only</label>
                 <input type="checkbox" id="chkAuthoriseOnly" name="authoriseOnly" />
             </div>
@@ -139,6 +195,13 @@
                     City
                 </label>
                 <input type="text" id="city" name="city" value="London" />
+            </div>
+
+            <div class="form-row">
+                <label>
+                    State
+                </label>
+                <input type="text" id="state" name="state" value="" />
             </div>
 
             <div class="form-row">
@@ -196,6 +259,14 @@
                 <input type="text" id="delivery-city" name="delivery-city" value="London" />
             </div>
 
+
+            <div class="form-row">
+                <label>
+                    State
+                </label>
+                <input type="text" id="delivery-state" name="delivery-state" value="London" />
+            </div>
+
             <div class="form-row">
                 <label>
                     Postcode
@@ -226,6 +297,37 @@
                 <input type="text" id="statement-narrative" maxlength="24" name="statement-narrative" value="Statement Narrative" />
             </div>
 
+            <div class="form-row">
+                <label>
+                    Order Code Prefix
+                </label>
+                <input type="text" id="code-prefix" name="code-prefix" value="" />
+            </div>
+
+            <div class="form-row">
+                <label>
+                    Order Code Suffix
+                </label>
+                <input type="text" id="code-suffix" name="code-suffix" value="" />
+            </div>
+
+            <div class="form-row language-code-row">
+                <label>Shopper Language Code</label>
+                <input type="text" id="language-code" maxlength="2" data-worldpay="language-code" value="EN" />
+            </div>
+
+            <div class="form-row">
+                <label>Shopper Email</label>
+                <input type="text" id="shopper-email" name="shopper-email" value="shopper@email.com" />
+            </div>
+
+            <div class="form-row swift-code-row apm" style="display:none">
+                <label>
+                    Swift Code
+                </label>
+                <input type="text" id="swift-code" value="NWBKGB21" />
+            </div>
+
             <div class="form-row large">
                 <label class='left'>
                     Customer Identifiers (json)
@@ -251,22 +353,28 @@
             document.getElementById('place-order').disabled = true;
         }
         else {
+
+
             // Set client key
             Worldpay.setClientKey("your-client-key");
             // Get form element
+
             var form = $('#my-payment-form')[0];
-            Worldpay.useForm(form, function (status, response) {
-                if (response.error) {
-                    Worldpay.handleError(form, $('#my-payment-form .payment-errors')[0], response.error);
-                } else if (status != 200) {
-                    Worldpay.handleError(form, $('#my-payment-form .payment-errors')[0], response);
-                } else {
-                    var token = response.token;
-                    Worldpay.formBuilder(form, 'input', 'hidden', 'token', token);
-                    $('#my-payment-form .token').html("Your token is: " + token);
-                    form.submit();
-                }
-            });
+            var _triggerWorldpayUseForm = function() {
+                Worldpay.useForm(form, function (status, response) {
+                    if (response.error) {
+                        Worldpay.handleError(form, $('#my-payment-form .payment-errors')[0], response.error);
+                    } else if (status != 200) {
+                        Worldpay.handleError(form, $('#my-payment-form .payment-errors')[0], response);
+                    } else {
+                        var token = response.token;
+                        Worldpay.formBuilder(form, 'input', 'hidden', 'token', token);
+                        $('#my-payment-form .token').html("Your token is: " + token);
+                        form.submit();
+                    }
+                });
+            };
+            _triggerWorldpayUseForm();
 
             $('#chkReusable').change(function(){
                 if ($(this).is(':checked')) {
@@ -274,6 +382,88 @@
                 }
                 else {
                     Worldpay.reusable = false;
+                }
+            });
+
+            $('#direct-order').on('change', function() {
+                var isDirectOrder = $(this).val();
+                if (isDirectOrder == 1) {
+                    form.onsubmit = null;
+
+                    //add names to card form parameters
+                    $('#card').attr('name', 'card');
+                    $('#cvc').attr('name', 'cvc');
+                    $('#expiration-month').attr('name', 'expiration-month');
+                    $('#expiration-year').attr('name', 'expiration-year');
+                    $('#apm-name').attr('name', 'apm-name');
+                    $('#swift-code').attr('name','swiftCode');
+                    $('#language-code').attr('name','language-code');
+                }
+                else {
+                    $('#card, #cvc, #expiration-month, #expiration-year, #apm-name, #swiftCode, #language-code').removeAttr('name');
+                    _triggerWorldpayUseForm();
+                }
+            });
+
+            $('#order-type').on('change', function () {
+                if ($(this).val() == 'APM') {
+                    Worldpay.tokenType = 'apm';
+                    $('.apm').show();
+                    $('.no-apm').hide();
+
+                    //initialize swift code field
+                    $('#swift-code').removeAttr('data-worldpay-apm');
+                    $('.swift-code-row').hide();
+                    $('.reusable-token-row').show();
+                    $('#language-code').attr('data-worldpay', 'language-code');
+                    $('.language-code-row').show();
+
+                    //handle attributes
+                    $('#card').removeAttr('data-worldpay');
+                    $('#cvc').removeAttr('data-worldpay');
+                    $('#expiration-month').removeAttr('data-worldpay');
+                    $('#expiration-year').removeAttr('data-worldpay');
+                    $('#country-code').attr('data-worldpay', 'country-code');
+                } else {
+                    Worldpay.tokenType = 'card';
+                    $('.apm').hide();
+                    $('.no-apm').show();
+                    $('#card').attr('data-worldpay', 'number');
+                    $('#cvc').attr('data-worldpay', 'cvc');
+                    $('#expiration-month').attr('data-worldpay', 'exp-month');
+                    $('#expiration-year').attr('data-worldpay', 'exp-year');
+                    $('#country-code').removeAttr('data-worldpay');
+                }
+            });
+
+            $('#apm-name').on('change', function () {
+                if ($(this).val() == 'giropay') {
+                    Worldpay.reusable = false;
+                    $('#swift-code').attr('data-worldpay-apm', 'swiftCode');
+                    $('.swift-code-row').show();
+
+                    //No language code for Giropay
+                    $('#language-code').removeAttr('data-worldpay');
+                    $('.language-code-row').hide();
+
+                    //Reusable token option is not available for Giropay
+                    $('.reusable-token-row').hide();
+
+                    //Set acceptance currency to EUR
+                    $('#currency').val('EUR');
+                }
+                else {
+                    //we don't want to send swift code to the api if the apm is not Giropay
+                    $('#swift-code').removeAttr('data-worldpay-apm');
+                    $('.swift-code-row').hide();
+                    $('.reusable-token-row').show();
+
+                    //language code enabled by default
+                    $('#language-code').attr('data-worldpay', 'language-code');
+                    $('.language-code-row').show();
+
+                    //Set acceptance currency to GBP
+                    $('#currency').val('GBP');
                 }
             });
         }

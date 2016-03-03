@@ -1,7 +1,7 @@
 
 <?php
 /**
- * PHP library version: v1.7
+ * PHP library version: 1.8
  */
 require_once('../lib/worldpay.php');
 
@@ -25,12 +25,10 @@ try {
     $response .= (!empty($amount)) ? '<span id="amount">'. $amount .'</span>' : 'the full amount';    
     echo $response;
                       
-} catch (WorldpayException $e) { // PHP 5.3+
+} catch (WorldpayException $e) {
     // Worldpay has thrown an exception
     echo 'Error code: ' . $e->getCustomCode() . '<br/> 
     HTTP status code:' . $e->getHttpStatusCode() . '<br/> 
     Error description: ' . $e->getDescription()  . ' <br/>
     Error message: ' . $e->getMessage();
-} catch (Exception $e) {  // PHP 5.2 
-    echo 'Error message: '. $e->getMessage();
 }

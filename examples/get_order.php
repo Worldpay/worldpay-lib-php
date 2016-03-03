@@ -12,20 +12,18 @@ $worldpay = new Worldpay("your-service-key");
 // DONT USE IN PRODUCTION
 $worldpay->disableSSLCheck(true);
 
-$worldpayOrderCode = $_POST['orderCode'];
+$orderCode = $_POST['orderCode'];
 
-include("header.php");
+include('header.php');
 
 // Try catch
 try {
-    // Cancel the authorised order using the Worldpay order code
-    $worldpay->cancelAuthorisedOrder($worldpayOrderCode);
-    echo 'Authorised order <span id="order-code">'.$worldpayOrderCode.'</span>
-        has been cancelled';
+    $response = $worldpay->getOrder($orderCode);
+    echo '<pre>' . print_r($response, true). '</pre>';
 } catch (WorldpayException $e) {
     // Worldpay has thrown an exception
-    echo 'Error code: ' . $e->getCustomCode() . '<br/> 
-    HTTP status code:' . $e->getHttpStatusCode() . '<br/> 
+    echo 'Error code: ' . $e->getCustomCode() . '<br/>
+    HTTP status code:' . $e->getHttpStatusCode() . '<br/>
     Error description: ' . $e->getDescription()  . ' <br/>
     Error message: ' . $e->getMessage();
 }

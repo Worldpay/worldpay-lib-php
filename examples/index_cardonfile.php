@@ -7,6 +7,11 @@
             <div class="header">Checkout</div>
 
             <div class="form-row">
+                <label>Site Code</label>
+                <input type="text" id="site-code" name="site-code" value="N/A" />
+            </div>
+
+            <div class="form-row">
                 <label>
                     Name
                 </label>
@@ -46,8 +51,9 @@
 
             <div class="form-row">
                 <label>Settlement Currency</label>
-                 <select id="order-type" name="settlement-currency">
-                    <option value="USD" selected>USD</option>
+                 <select id="settlement-currency" name="settlement-currency">
+                    <option value="" selected></option>
+                    <option value="USD">USD</option>
                     <option value="GBP">GBP</option>
                     <option value="EUR">EUR</option>
                     <option value="CAD">CAD</option>
@@ -64,6 +70,7 @@
                  <select id="order-type" name="order-type">
                     <option value="ECOM" selected>ECOM</option>
                     <option value="MOTO">MOTO</option>
+                    <option value="RECURRING">RECURRING</option>
                 </select>
             </div>
 
@@ -105,6 +112,13 @@
                     City
                 </label>
                 <input type="text" id="city" name="city" value="London" />
+            </div>
+
+            <div class="form-row">
+                <label>
+                    State
+                </label>
+                <input type="text" id="state" name="state" value="London" />
             </div>
 
             <div class="form-row">
@@ -165,6 +179,13 @@
 
             <div class="form-row">
                 <label>
+                    State
+                </label>
+                <input type="text" id="delivery-state" name="delivery-state" value="London" />
+            </div>
+
+            <div class="form-row">
+                <label>
                     Postcode
                 </label>
                 <input type="text" id="delivery-postcode" name="delivery-postcode" value="EC1 1AA" />
@@ -193,6 +214,32 @@
                 <input type="text" id="statement-narrative" maxlength="24" name="statement-narrative" value="Statement Narrative" />
             </div>
 
+
+            <div class="form-row">
+                <label>
+                    Order Code Prefix
+                </label>
+                <input type="text" id="code-prefix" name="code-prefix" value="" />
+            </div>
+
+            <div class="form-row">
+                <label>
+                    Order Code Suffix
+                </label>
+                <input type="text" id="code-suffix" name="code-suffix" value="" />
+            </div>
+
+            <div class="form-row">
+                <label>Shopper Email</label>
+                <input type="text" id="shopper-email" name="shopper-email" value="shopper@email.com" />
+            </div>
+
+            <div class="form-row large">
+                <label class='left'>
+                    Customer Identifiers (json)
+                </label>
+                <textarea id="customer-identifiers" rows="6" cols="30" name="customer-identifiers"></textarea>
+            </div>
 
                 <input type="submit" id="place-order" value="Place Order" />
             </div>
