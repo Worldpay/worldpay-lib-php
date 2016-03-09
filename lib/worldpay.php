@@ -569,6 +569,26 @@ final class Worldpay
 
         $this->sendRequest('orders/' . $orderCode . '/refund', $json, false);
     }
+    
+    /**
+     * Get a Worldpay order
+     * @param string $orderCode
+     * @return array Worldpay order response
+     * */
+    public function getOrder($orderCode = false)
+    {
+        if (empty($orderCode) || !is_string($orderCode))
+        {
+            self::onError('ip', self::$errors['orderInput']['token']);
+        }
+        $response = $this->sendRequest('orders/' . $orderCode, false, true, 'GET');
+
+        if (!isset($response["orderCode"]))
+        {
+            self::onError("apierror");
+        }
+        return $response;
+    }
 
     /**
      * Get a Worldpay order
