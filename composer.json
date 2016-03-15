@@ -1,0 +1,13 @@
+{
+  "name": "worldpay/worldpay-lib-php",
+  "description": "PHP Library for Worldpay REST API https://online.worldpay.com",
+  "require": {
+    "lib-curl": "*"
+  },
+  "license": "MIT",
+  "autoload": {
+    "classmap": {
+      "Worldpay": "lib/worldpay.php"
+    }
+  }
+}
