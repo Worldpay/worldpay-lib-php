@@ -171,7 +171,7 @@ final class Worldpay
         if (!isset($order['name'])) {
             $errors[] = self::$errors['orderInput']['name'];
         }
-        if (!isset($order['billingAddress'])) {
+        if (isset($order['billingAddress']) && !is_array($order['billingAddress'])) {
             $errors[] = self::$errors['orderInput']['billingAddress'];
         }
 
