@@ -2,6 +2,7 @@
 namespace Worldpay;
 ?>
 
+
 <?php
 /**
  * PHP library version: 2.0.0
@@ -16,14 +17,18 @@ $worldpay = new Worldpay("your-service-key");
 $worldpay->disableSSLCheck(true);
 
 $worldpayOrderCode = $_POST['orderCode'];
+$amount = $_POST['amount'];
 
-include('header.php');
+include("header.php");
 
 // Try catch
 try {
-    // Refund the order using the Worldpay order code
-    $worldpay->refundOrder($worldpayOrderCode);
-    echo 'Order <span id="order-code">'.$worldpayOrderCode.'</span> has been refunded!';
+    // Capture the authorized order using the Worldpay order code
+    $worldpay->captureAuthorizedOrder($worldpayOrderCode, $amount*100);
+    $response = 'Authorized order <span id="order-code">'.$worldpayOrderCode.'</span> has been captured for ';
+    $response .= (!empty($amount)) ? '<span id="amount">'. $amount .'</span>' : 'the full amount';
+    echo $response;
+
 } catch (WorldpayException $e) {
     // Worldpay has thrown an exception
     echo 'Error code: ' . $e->getCustomCode() . '<br/>

@@ -1,9 +1,12 @@
+<?php
+namespace Worldpay;
+?>
 
 <?php
 /**
- * PHP library version: 1.8
+ * PHP library version: 2.0.0
  */
-require_once('../lib/worldpay.php');
+require_once('../init.php');
 
 // Initialise Worldpay class with your SERVICE KEY
 $worldpay = new Worldpay("your-service-key");
@@ -18,14 +21,14 @@ include("header.php");
 
 // Try catch
 try {
-    // Cancel the authorised order using the Worldpay order code
-    $worldpay->cancelAuthorisedOrder($worldpayOrderCode);
-    echo 'Authorised order <span id="order-code">'.$worldpayOrderCode.'</span>
+    // Cancel the authorized order using the Worldpay order code
+    $worldpay->cancelAuthorizedOrder($worldpayOrderCode);
+    echo 'Authorized order <span id="order-code">'.$worldpayOrderCode.'</span>
         has been cancelled';
 } catch (WorldpayException $e) {
     // Worldpay has thrown an exception
-    echo 'Error code: ' . $e->getCustomCode() . '<br/> 
-    HTTP status code:' . $e->getHttpStatusCode() . '<br/> 
+    echo 'Error code: ' . $e->getCustomCode() . '<br/>
+    HTTP status code:' . $e->getHttpStatusCode() . '<br/>
     Error description: ' . $e->getDescription()  . ' <br/>
     Error message: ' . $e->getMessage();
 }

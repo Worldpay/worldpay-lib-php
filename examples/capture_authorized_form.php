@@ -1,6 +1,6 @@
 <?php include("header.php"); ?>
-        <h1>PHP Library Capture Authorised Order Example</h1>
-        <form method="post" action="capture_authorised_order.php" id="capture-authorised-order-form">
+        <h1>PHP Library Capture Authorized Order Example</h1>
+        <form method="post" action="capture_authorized_order.php" id="capture-authorized-order-form">
             <div class="payment-errors"></div>
             <div class="form-row">
                 <label>
@@ -14,7 +14,7 @@
                 </label>
                 <input type="text" id="amount" name="amount" value="" />
             </div>
-            <input type="submit" id="capture-order" value="Capture Authorised Order" />
+            <input type="submit" id="capture-order" value="Capture Authorized Order" />
         </form>
     </div>
 </body>

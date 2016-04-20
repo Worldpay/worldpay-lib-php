@@ -31,8 +31,7 @@
             <div class="form-row apm" style="display:none;">
                 <label>APM</label>
                 <select id="apm-name" data-worldpay="apm-name">
-                    <option value="paypal" selected="selected">PayPal</option>
-                    <option value="giropay">Giropay</option>
+                    <option value="paypal" selected="selected">PayPal</option><option value="giropay">Giropay</option><option value="ideal">iDEAL</option>
                 </select>
             </div>
 
@@ -164,8 +163,8 @@
             </div>
 
             <div class="form-row no-apm">
-                <label>Authorise Only</label>
-                <input type="checkbox" id="chkAuthoriseOnly" name="authoriseOnly" />
+                <label>Authorize Only</label>
+                <input type="checkbox" id="chkAuthorizeOnly" name="authorizeOnly" />
             </div>
 
             <div class="header">Billing address</div>
@@ -216,6 +215,13 @@
                     Country Code
                 </label>
                 <input type="text" id="country-code" name="countryCode" value="GB" />
+            </div>
+
+            <div class="form-row">
+                <label>
+                    Telephone Number
+                </label>
+                <input type="text" id="telephone-number" name="telephoneNumber" />
             </div>
 
             <div class="header">Delivery address</div>
@@ -281,6 +287,13 @@
                 <input type="text" id="delivery-country-code" name="delivery-countryCode" value="GB" />
             </div>
 
+            <div class="form-row">
+                <label>
+                    Telephone Number
+                </label>
+                <input type="text" id="delivery-telephone-number" name="delivery-telephoneNumber" />
+            </div>
+
             <div class="header">Other</div>
 
             <div class="form-row">
@@ -328,6 +341,13 @@
                 <input type="text" id="swift-code" value="NWBKGB21" />
             </div>
 
+            <div class="form-row shopper-bank-code-row apm" style="display:none">
+                <label>
+                    Shopper Bank Code
+                </label>
+                <input type="text" id="shopper-bank-code" value="RABOBANK" />
+            </div>
+
             <div class="form-row large">
                 <label class='left'>
                     Customer Identifiers (json)
@@ -345,10 +365,49 @@
     </div>
 
 <small>
-    
+    23712837183
 </small>
 
     <script type="text/javascript">
+
+        var showShopperBankCodeField = function() {
+            $('#shopper-bank-code').attr('data-worldpay-apm', 'shopperBankCode');
+            $('.shopper-bank-code-row').show();
+        };
+        var hideShopperBankCodeField = function() {
+            $('#shopper-bank-code').removeAttr('data-worldpay-apm');
+            $('.shopper-bank-code-row').hide();
+        };
+
+        var showSwiftCodeField = function() {
+            $('#swift-code').attr('data-worldpay-apm', 'swiftCode');
+            $('.swift-code-row').show();
+        }
+
+        var hideSwiftCodeField = function() {
+            $('#swift-code').removeAttr('data-worldpay-apm');
+            $('.swift-code-row').hide();
+        }
+
+        var showLanguageCodeField = function() {
+            $('#language-code').attr('data-worldpay', 'language-code');
+            $('.language-code-row').show();
+        }
+
+        var hideLanguageCodeField = function() {
+            $('#language-code').removeAttr('data-worldpay');
+            $('.language-code-row').hide();
+        }
+
+        var showReusableTokenField = function() {
+            $('.reusable-token-row').show();
+        }
+
+        var hideReusableTokenField = function() {
+            $('.reusable-token-row').hide();
+        }
+
+
         if (!window['Worldpay']) {
             document.getElementById('place-order').disabled = true;
         }
@@ -397,10 +456,11 @@
                     $('#expiration-year').attr('name', 'expiration-year');
                     $('#apm-name').attr('name', 'apm-name');
                     $('#swift-code').attr('name','swiftCode');
+                    $('#shopper-bank-code').attr('name','shopperBankCode');
                     $('#language-code').attr('name','language-code');
                 }
                 else {
-                    $('#card, #cvc, #expiration-month, #expiration-year, #apm-name, #swiftCode, #language-code').removeAttr('name');
+                    $('#card, #cvc, #expiration-month, #expiration-year, #apm-name, #swiftCode, #shopperBankCode, #language-code').removeAttr('name');
                     _triggerWorldpayUseForm();
                 }
             });
@@ -411,12 +471,11 @@
                     $('.apm').show();
                     $('.no-apm').hide();
 
-                    //initialize swift code field
-                    $('#swift-code').removeAttr('data-worldpay-apm');
-                    $('.swift-code-row').hide();
-                    $('.reusable-token-row').show();
-                    $('#language-code').attr('data-worldpay', 'language-code');
-                    $('.language-code-row').show();
+                    //initialize fields
+                    hideShopperBankCodeField();
+                    hideSwiftCodeField();
+                    showReusableTokenField();
+                    showLanguageCodeField();
 
                     //handle attributes
                     $('#card').removeAttr('data-worldpay');
@@ -437,34 +496,67 @@
             });
 
             $('#apm-name').on('change', function () {
-                if ($(this).val() == 'giropay') {
-                    Worldpay.reusable = false;
-                    $('#swift-code').attr('data-worldpay-apm', 'swiftCode');
-                    $('.swift-code-row').show();
+                var _apmName = $(this).val();
 
-                    //No language code for Giropay
-                    $('#language-code').removeAttr('data-worldpay');
-                    $('.language-code-row').hide();
+                hideSwiftCodeField();
+                hideShopperBankCodeField();
+                hideLanguageCodeField();
+                hideReusableTokenField();
 
-                    //Reusable token option is not available for Giropay
-                    $('.reusable-token-row').hide();
+                $('#country-code').val('GB');
+                $('#currency').val('GBP');
 
-                    //Set acceptance currency to EUR
-                    $('#currency').val('EUR');
+                switch (_apmName) {
+                    case 'mistercash':
+                        showReusableTokenField();
+                        showLanguageCodeField();
+                        $('#country-code').val('BE');
+                    break;
+                    case 'yandex':
+                    case 'qiwi':
+                        showReusableTokenField();
+                        showLanguageCodeField();
+                        $('#country-code').val('RU');
+                    break;
+                    case 'postepay':
+                        showReusableTokenField();
+                        showLanguageCodeField();
+                        $('#country-code').val('IT');
+                    break;
+                    case 'alipay':
+                        showReusableTokenField();
+                        showLanguageCodeField();
+                        $('#country-code').val('CN');
+                    break;
+                    case 'przelewy24':
+                        showReusableTokenField();
+                        showLanguageCodeField();
+                        $('#country-code').val('PL');
+                    break;
+                    case 'sofort':
+                        showReusableTokenField();
+                        showLanguageCodeField();
+                        $('#country-code').val('DE');
+                    break;
+                    case 'giropay':
+                        Worldpay.reusable = false;
+                        showSwiftCodeField();
+                        $('#currency').val('EUR');
+                    break;
+                    case 'ideal':
+                        //reusable token field is available for all apms (except giropay)
+                        showReusableTokenField();
+                         //language code enabled for all apms (except giropay)
+                        showLanguageCodeField();
+                         //shopper bank code field is only available for ideal
+                        showShopperBankCodeField();
+                    break;
+                    default:
+                        showReusableTokenField();
+                        showLanguageCodeField();
+                    break;
                 }
-                else {
-                    //we don't want to send swift code to the api if the apm is not Giropay
-                    $('#swift-code').removeAttr('data-worldpay-apm');
-                    $('.swift-code-row').hide();
-                    $('.reusable-token-row').show();
 
-                    //language code enabled by default
-                    $('#language-code').attr('data-worldpay', 'language-code');
-                    $('.language-code-row').show();
-
-                    //Set acceptance currency to GBP
-                    $('#currency').val('GBP');
-                }
             });
         }
         $('#chkReusable').prop('checked', false);

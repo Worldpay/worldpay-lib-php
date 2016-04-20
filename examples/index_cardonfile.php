@@ -80,8 +80,8 @@
             </div>
 
             <div class="form-row">
-                <label>Authorise Only</label>
-                <input type="checkbox" id="chkAuthoriseOnly" name="authoriseOnly" />
+                <label>Authorize Only</label>
+                <input type="checkbox" id="chkAuthorizeOnly" name="authorizeOnly" />
             </div>
 
             <div class="header">Billing address</div>
@@ -133,6 +133,13 @@
                     Country Code
                 </label>
                 <input type="text" id="country-code" name="countryCode" value="GB" />
+            </div>
+
+            <div class="form-row">
+                <label>
+                    Telephone Number
+                </label>
+                <input type="text" id="telephone-number" name="telephoneNumber"/>
             </div>
 
             <div class="header">Delivery address</div>
@@ -196,6 +203,13 @@
                     Country Code
                 </label>
                 <input type="text" id="delivery-country-code" name="delivery-countryCode" value="GB" />
+            </div>
+
+            <div class="form-row">
+                <label>
+                    Telephone Number
+                </label>
+                <input type="text" id="delivery-telephone-number" name="delivery-telephoneNumber"/>
             </div>
 
             <div class="header">Other</div>

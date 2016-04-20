@@ -1,10 +1,13 @@
+<?php
+namespace Worldpay;
+?>
 
 <?php
 
 /**
- * PHP library version: 1.8
+ * PHP library version: 2.0.0
  */
-require_once('../lib/worldpay.php');
+require_once('../init.php');
 
 // Initialise Worldpay class with your SERVICE KEY
 $worldpay = new Worldpay("your-service-key");
@@ -16,13 +19,13 @@ $worldpay->disableSSLCheck(true);
 include('header.php');
 
 try {
-    $response = $worldpay->authorise3DSOrder($_SESSION['orderCode'], $_POST['PaRes']);
+    $response = $worldpay->authorize3DSOrder($_SESSION['orderCode'], $_POST['PaRes']);
 
     if (isset($response['paymentStatus']) && ($response['paymentStatus'] == 'SUCCESS' ||  $response['paymentStatus'] == 'AUTHORIZED')) {
-        echo 'Order Code: ' . $_SESSION['orderCode'] . ' has been authorised <br/>';
+        echo 'Order Code: ' . $_SESSION['orderCode'] . ' has been authorized <br/>';
     } else {
         var_dump($response);
-        echo 'There was a problem authorising 3DS order <br/>';
+        echo 'There was a problem authorizing 3DS order <br/>';
     }
 } catch (WorldpayException $e) {
     // Worldpay has thrown an exception

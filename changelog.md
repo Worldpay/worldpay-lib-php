@@ -1,3 +1,11 @@
+### 2.0.0 2016-04-20
+* Code Refactor
+* TelephoneNumber added to AddressObject
+* Shopper Data refactored
+* Reference Classing
+* Composer Support
+* Packagist Linking
+
 ### 1.8 2016-02-03
 * Shopper Language Code Fix
 * Reusable Flag for Direct Orders

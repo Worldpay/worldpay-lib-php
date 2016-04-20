@@ -1,9 +1,13 @@
+<?php
+namespace Worldpay;
+?>
 
 <?php
 /**
- * PHP library version: 1.8
+ * PHP library version: 2.0.0
  */
-require_once('../lib/worldpay.php');
+
+require_once('../init.php');
 
 // Initialise Worldpay class with your SERVICE KEY
 $worldpay = new Worldpay("your-service-key");

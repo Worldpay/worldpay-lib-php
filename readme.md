@@ -1,4 +1,22 @@
-# Worldpay PHP Library 1.8
+# Worldpay PHP Library 2.0.0
+
+#### Installation
+
+##### Composer
+Add to your composer.json:
+```javascript
+"worldpay/worldpay-lib-php": "~2.0.0"
+```
+
+Or run:
+```
+composer require worldpay/worldpay-lib-php
+```
+##### Manual
+
+```php
+require_once('worldpay-php/init.php');
+```
 
 #### Documentation
 https://online.worldpay.com/docs
@@ -18,7 +36,7 @@ Creates a Worldpay order with a posted token.
 **Change your service key*
 
 #### 3ds_redirect.php
-Authorises a 3DS order
+Authorizes a 3DS order
 **Change your service key*
 
 #### refund.php

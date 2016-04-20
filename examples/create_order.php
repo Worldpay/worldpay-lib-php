@@ -1,9 +1,13 @@
+<?php
+namespace Worldpay;
+?>
 
 <?php
 /**
- * PHP library version: 1.8
+ * PHP library version: 2.0.0
  */
-require_once('../lib/worldpay.php');
+
+require_once('../init.php');
 
 // Initialise Worldpay class with your SERVICE KEY
 $worldpay = new Worldpay("your-service-key");
@@ -25,7 +29,7 @@ if (isset($_POST['amount']) && !empty($_POST['amount'])) {
 $orderType = $_POST['order-type'];
 
 $_3ds = (isset($_POST['3ds'])) ? $_POST['3ds'] : false;
-$authoriseOnly = (isset($_POST['authoriseOnly'])) ? $_POST['authoriseOnly'] : false;
+$authorizeOnly = (isset($_POST['authorizeOnly'])) ? $_POST['authorizeOnly'] : false;
 $customerIdentifiers = (!empty($_POST['customer-identifiers'])) ? json_decode($_POST['customer-identifiers']) : array();
 
 include('header.php');
@@ -40,7 +44,8 @@ try {
         "postalCode"=> $_POST['postcode'],
         "city"=> $_POST['city'],
         "state"=> $_POST['state'],
-        "countryCode"=> $_POST['countryCode']
+        "countryCode"=> $_POST['countryCode'],
+        "telephoneNumber"=> $_POST['telephoneNumber']
     );
 
     // Customers delivery address
@@ -53,7 +58,8 @@ try {
         "postalCode"=> $_POST['delivery-postcode'],
         "city"=> $_POST['delivery-city'],
         "state"=> $_POST['delivery-state'],
-        "countryCode"=> $_POST['delivery-countryCode']
+        "countryCode"=> $_POST['delivery-countryCode'],
+        "telephoneNumber"=> $_POST['delivery-telephoneNumber']
     );
 
     if ($orderType == 'APM') {
@@ -79,12 +85,27 @@ try {
         );
 
         if ($directOrder) {
+            $obj['directOrder'] = true;
             $obj['shopperLanguageCode'] = isset($_POST['language-code']) ? $_POST['language-code'] : "";
             $obj['reusable'] = (isset($_POST['chkReusable']) && $_POST['chkReusable'] == 'on') ? true : false;
+
+            $apmFields = array();
+            if (isset($_POST['swiftCode'])) {
+                $apmFields['swiftCode'] = $_POST['swiftCode'];
+            }
+
+            if (isset($_POST['shopperBankCode'])) {
+                $apmFields['shopperBankCode'] = $_POST['shopperBankCode'];
+            }
+
+            if (empty($apmFields)) {
+                $apmFields =  new stdClass();
+            }
+
             $obj['paymentMethod'] = array(
                   "apmName" => $_POST['apm-name'],
-                  "shopperCountryCode" => 'GB',
-                  "apmFields" => isset($_POST['swiftCode']) ? array('swiftCode' => $_POST['swiftCode']) : new stdClass()
+                  "shopperCountryCode" => $_POST['countryCode'],
+                  "apmFields" => $apmFields
             );
         }
         else {
@@ -114,7 +135,7 @@ try {
             'orderDescription' => $_POST['description'], // Order description of your choice
             'amount' => $amount, // Amount in pence
             'is3DSOrder' => $_3ds, // 3DS
-            'authoriseOnly' => $authoriseOnly,
+            'authorizeOnly' => $authorizeOnly,
             'siteCode' => $_POST['site-code'],
             'orderType' => $_POST['order-type'], //Order Type: ECOM/MOTO/RECURRING
             'currencyCode' => $_POST['currency'], // Currency code
@@ -131,6 +152,7 @@ try {
         );
 
         if ($directOrder) {
+            $obj['directOrder'] = true;
             $obj['shopperLanguageCode'] = isset($_POST['language-code']) ? $_POST['language-code'] : "";
             $obj['reusable'] = (isset($_POST['chkReusable']) && $_POST['chkReusable'] == 'on') ? true : false;
             $obj['paymentMethod'] = array(
