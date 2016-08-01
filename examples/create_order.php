@@ -4,7 +4,7 @@ namespace Worldpay;
 
 <?php
 /**
- * PHP library version: 2.0.0
+ * PHP library version: 2.1.0
  */
 
 require_once('../init.php');
@@ -77,7 +77,7 @@ try {
             'statementNarrative' => $_POST['statement-narrative'],
             'orderCodePrefix' => $_POST['code-prefix'],
             'orderCodeSuffix' => $_POST['code-suffix'],
-            'customerOrderCode' => 'A123', // Order code of your choice
+            'customerOrderCode' => $_POST['customer-order-code'], // Order code of your choice
             'successUrl' => $_POST['success-url'], //Success redirect url for APM
             'pendingUrl' => $_POST['pending-url'], //Pending redirect url for APM
             'failureUrl' => $_POST['failure-url'], //Failure redirect url for APM
@@ -148,7 +148,7 @@ try {
             'statementNarrative' => $_POST['statement-narrative'],
             'orderCodePrefix' => $_POST['code-prefix'],
             'orderCodeSuffix' => $_POST['code-suffix'],
-            'customerOrderCode' => 'A123' // Order code of your choice
+            'customerOrderCode' => $_POST['customer-order-code'] // Order code of your choice
         );
 
         if ($directOrder) {

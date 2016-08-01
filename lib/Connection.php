@@ -57,7 +57,7 @@ class Connection {
     {
         $arch = (bool)((1<<32)-1) ? 'x64' : 'x86';
         $clientUA = 'os.name=' . php_uname('s') . ';os.version=' . php_uname('r') . ';os.arch=' .
-        $arch . ';lang.version='. phpversion() . ';lib.version=2.0.0;' . 'api.version=v1;lang=php;owner=worldpay';
+        $arch . ';lang.version='. phpversion() . ';lib.version=2.1.0;' . 'api.version=v1;lang=php;owner=worldpay';
         return $clientUA;
     }
 

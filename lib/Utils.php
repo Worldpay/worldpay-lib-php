@@ -41,7 +41,7 @@ class Utils {
         } else {
             $ipaddress = 'UNKNOWN';
         }
-        return $ipaddress;
+        return trim(explode(",", $ipaddress)[0]);
     }
 
     public static function setThreeDSShopperObject($threeDSShopperObject)

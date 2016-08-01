@@ -1,3 +1,7 @@
+### 2.1.0 2016-08-01
+* Remove multiple IP Addresses sent with Utils
+* Add customerOrderCode
+
 ### 2.0.0 2016-04-20
 * Code Refactor
 * TelephoneNumber added to AddressObject

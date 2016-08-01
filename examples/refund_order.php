@@ -4,7 +4,7 @@ namespace Worldpay;
 
 <?php
 /**
- * PHP library version: 2.0.0
+ * PHP library version: 2.1.0
  */
 require_once('../init.php');
 

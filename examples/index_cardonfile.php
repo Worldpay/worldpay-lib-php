@@ -228,6 +228,12 @@
                 <input type="text" id="statement-narrative" maxlength="24" name="statement-narrative" value="Statement Narrative" />
             </div>
 
+            <div class="form-row">
+                <label>
+                    Customer Order Code
+                </label>
+                <input type="text" id="customer-order-code" name="customer-order-code" value="A123" />
+            </div>
 
             <div class="form-row">
                 <label>
