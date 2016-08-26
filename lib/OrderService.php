@@ -22,12 +22,12 @@ class OrderService
         } else {
             $json = false;
         }
-        Connection::getInstance()->sendRequest('orders/' . $orderCode . '/capture', $json, !!$json);
+        return Connection::getInstance()->sendRequest('orders/' . $orderCode . '/capture', $json, !!$json);
     }
 
     public static function cancelAuthorizedOrder($orderCode)
     {
-        Connection::getInstance()->sendRequest('orders/' . $orderCode, false, false, 'DELETE');
+        return Connection::getInstance()->sendRequest('orders/' . $orderCode, false, false, 'DELETE');
     }
 
     public static function getOrder($orderCode)
@@ -42,6 +42,6 @@ class OrderService
         } else {
             $json = false;
         }
-        Connection::getInstance()->sendRequest('orders/' . $orderCode . '/refund', $json, false);
+        return Connection::getInstance()->sendRequest('orders/' . $orderCode . '/refund', $json, false);
     }
 }

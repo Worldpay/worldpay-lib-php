@@ -142,7 +142,7 @@ class Worldpay
             Error::throwError('ip', Error::$errors['capture']['ordercode']);
         }
 
-        OrderService::captureAuthorizedOrder($orderCode, $amount);
+        return OrderService::captureAuthorizedOrder($orderCode, $amount);
     }
 
     /**
@@ -154,7 +154,7 @@ class Worldpay
         if (empty($orderCode) || !is_string($orderCode)) {
             Error::throwError('ip', Error::$errors['capture']['ordercode']);
         }
-        OrderService::cancelAuthorizedOrder($orderCode);
+        return OrderService::cancelAuthorizedOrder($orderCode);
     }
 
     /**
@@ -167,7 +167,7 @@ class Worldpay
         if (empty($orderCode) || !is_string($orderCode)) {
             Error::throwError('ip', Error::$errors['refund']['ordercode']);
         }
-        OrderService::refundOrder($orderCode, $amount);
+        return OrderService::refundOrder($orderCode, $amount);
     }
 
     /**
