@@ -1,11 +1,11 @@
-# Worldpay PHP Library 2.1.0
+# Worldpay PHP Library 2.1.1
 
 #### Installation
 
 ##### Composer
 Add to your composer.json:
 ```javascript
-"worldpay/worldpay-lib-php": "~2.1.0"
+"worldpay/worldpay-lib-php": "~2.1.1"
 ```
 
 Or run:
