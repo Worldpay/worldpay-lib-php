@@ -1,5 +1,5 @@
 <?php
-require_once('init.php');
+require_once('../init.php');
 if (session_id() === "") session_start();
 ?>
 <!DOCTYPE html>
