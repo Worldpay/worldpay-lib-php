@@ -16,7 +16,7 @@
 	],
     "homepage": "https://online.worldpay.com",
     "license": "MIT",
-    "version": "2.1.0",
+    "version": "2.1.1",
     "autoload": {
         "psr-4": {"Worldpay\\": "lib/"}
     },
