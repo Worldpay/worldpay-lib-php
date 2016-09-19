@@ -91,12 +91,12 @@ if (session_id() === "") session_start();
 <div class="container">
 
 <ul id="top-nav">
-    <li><a href="/index.php">Create Order</a></li>&nbsp;&nbsp;|
-    <li><a href="/index_cardonfile.php">Create Order (CardOnFile)</a></li>&nbsp;&nbsp;|
-    <li><a href="/capture_authorized_form.php">Capture Authorized Order</a></li>&nbsp;&nbsp;|
-    <li><a href="/cancel_authorized_form.php">Cancel Authorized Order</a></li>&nbsp;&nbsp;|
-    <li><a href="/refund.php">Refund</a></li>&nbsp;&nbsp;|
-    <li><a href="/partial_refund.php">Partial Refund</a></li>&nbsp;&nbsp;|
-    <li><a href="/stored_cards.php">Stored Cards</a></li>&nbsp;&nbsp;|
-    <li><a href="/get_order_form.php">Get Order</a></li>
+    <li><a href="index.php">Create Order</a></li>&nbsp;&nbsp;|
+    <li><a href="index_cardonfile.php">Create Order (CardOnFile)</a></li>&nbsp;&nbsp;|
+    <li><a href="capture_authorized_form.php">Capture Authorized Order</a></li>&nbsp;&nbsp;|
+    <li><a href="cancel_authorized_form.php">Cancel Authorized Order</a></li>&nbsp;&nbsp;|
+    <li><a href="refund.php">Refund</a></li>&nbsp;&nbsp;|
+    <li><a href="partial_refund.php">Partial Refund</a></li>&nbsp;&nbsp;|
+    <li><a href="stored_cards.php">Stored Cards</a></li>&nbsp;&nbsp;|
+    <li><a href="get_order_form.php">Get Order</a></li>
 </ul>
