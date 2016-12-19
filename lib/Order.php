@@ -82,20 +82,27 @@ class Order extends AbstractOrder
         $paymentMethod = array();
         if (isset($data['paymentMethod'])) {
             $_orderPM = $data['paymentMethod'];
-            $_name = isset($_orderPM['name']) ? $_orderPM['name'] : "";
-            $_expiryMonth = isset($_orderPM['expiryMonth']) ? $_orderPM['expiryMonth'] : "";
-            $_expiryYear = isset($_orderPM['expiryYear']) ? $_orderPM['expiryYear'] : "";
-            $_cardNumber = isset($_orderPM['cardNumber']) ? $_orderPM['cardNumber'] : "";
-            $_cvc = isset($_orderPM['cvc']) ? $_orderPM['cvc'] : "";
+            if($_orderPM['type'] === "CSE"){
+                $paymentMethod = array(
+                    'type' =>$_orderPM['type'],
+                    'encryptedData' =>$_orderPM['encryptedData']
+                );
+            } else {
+                $_name = isset($_orderPM['name']) ? $_orderPM['name'] : "";
+                $_expiryMonth = isset($_orderPM['expiryMonth']) ? $_orderPM['expiryMonth'] : "";
+                $_expiryYear = isset($_orderPM['expiryYear']) ? $_orderPM['expiryYear'] : "";
+                $_cardNumber = isset($_orderPM['cardNumber']) ? $_orderPM['cardNumber'] : "";
+                $_cvc = isset($_orderPM['cvc']) ? $_orderPM['cvc'] : "";
 
-            $paymentMethod = array(
-                  "type" => "Card",
-                  "name" => $_name,
-                  "expiryMonth" => $_expiryMonth,
-                  "expiryYear" => $_expiryYear,
-                  "cardNumber"=> $_cardNumber,
-                  "cvc"=> $_cvc,
-            );
+                $paymentMethod = array(
+                    "type" => "Card",
+                    "name" => $_name,
+                    "expiryMonth" => $_expiryMonth,
+                    "expiryYear" => $_expiryYear,
+                    "cardNumber" => $_cardNumber,
+                    "cvc" => $_cvc,
+                );
+            }
         }
         return $paymentMethod;
     }
