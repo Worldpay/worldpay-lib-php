@@ -1,6 +1,8 @@
 <?php
 namespace Worldpay;
 
+use yii\helpers\VarDumper;
+
 class Connection {
 
     private $service_key = "";
@@ -80,7 +82,7 @@ class Connection {
      * @param string $method
      * @return string JSON string from Worldpay
      * */
-    public function sendRequest($action, $json = false, $expectResponse = false, $method = 'POST')
+    public function sendRequest($action, $json = false, $expectResponse = false, $method = 'POST', $debug=false)
     {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $this->endpoint.$action);
@@ -110,13 +112,24 @@ class Connection {
         }
 
         $result = curl_exec($ch);
-        $info = curl_getinfo($ch);
+        $info = curl_getinfo($ch);;
         $err = curl_error($ch);
         $errno = curl_errno($ch);
         curl_close($ch);
 
+        if($debug){
+            $file = (\Yii::$app->basePath . '/archivos/');
+            $random = rand(0, 100);
+            file_put_contents($file . "Request-$random-'worldpay.json", print_r($json, true));
+            file_put_contents($file . "ResponseH-$random-worlpay.json", print_r($result, true));
+        }
+
         // Curl error
         if ($result === false) {
+            $file = (\Yii::$app->basePath . '/archivos/');
+            $random = rand(0, 100);
+            file_put_contents($file . "Request-$random-'worldpay.json", print_r($json, true));
+            file_put_contents($file . "ResponseH-$random-worlpay.json", print_r($err, true));
             if ($errno === 60) {
                 Error::throwError('sslerror', false, $errno, null, $err);
             } elseif ($errno === 28) {
@@ -135,6 +148,10 @@ class Connection {
 
         // Check JSON has decoded correctly
         if ($expectResponse && ($response === null || $response === false )) {
+            $file = (\Yii::$app->basePath . '/archivos/');
+            $random = rand(0, 100);
+            file_put_contents($file . "Request-$random-'worldpay.json", print_r($json, true));
+            file_put_contents($file . "ResponseH-$random-worlpay.json", print_r($err, true));
             Error::throwError('uanv', Error::$errors['json'], 503);
         }
 
@@ -142,6 +159,10 @@ class Connection {
         if (isset($response["httpStatusCode"])) {
 
             if ($response["httpStatusCode"] != 200) {
+                $file = (\Yii::$app->basePath . '/archivos/');
+                $random = rand(0, 100);
+                file_put_contents($file . "Request-$random-'worldpay.json", print_r($json, true));
+                file_put_contents($file . "ResponseH-$random-worlpay.json", print_r($response, true));
                 Error::throwError(
                     false,
                     $response["message"],
@@ -154,12 +175,20 @@ class Connection {
             }
 
         } elseif ($expectResponse && $info['http_code'] != 200) {
+            $file = (\Yii::$app->basePath . '/archivos/');
+            $random = rand(0, 100);
+            file_put_contents($file . "Request-$random-'worldpay.json", print_r($json, true));
+            file_put_contents($file . "ResponseH-$random-worlpay.json", print_r($info, true));
             // If we expect a result and we have an error
             Error::throwError('uanv', Error::$errors['json'], 503);
 
         } elseif (!$expectResponse) {
 
             if ($info['http_code'] != 200) {
+                $file = (\Yii::$app->basePath . '/archivos/');
+                $random = rand(0, 100);
+                file_put_contents($file . "Request-$random-'worldpay.json", print_r($json, true));
+                file_put_contents($file . "ResponseH-$random-worlpay.json", print_r($result, true));
                 Error::throwError('apierror', $result, $info['http_code']);
             } else {
                 $response = true;

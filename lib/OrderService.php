@@ -3,9 +3,9 @@ namespace Worldpay;
 
 class OrderService
 {
-    public static function createOrder($order)
+    public static function createOrder($order, $debug=false)
     {
-        return Connection::getInstance()->sendRequest('orders', json_encode($order->toArray()), true);
+        return Connection::getInstance()->sendRequest('orders', json_encode($order->toArray()), true, 'POST', $debug);
     }
 
     public static function authorize3DSOrder($orderCode, $responseCode)
