@@ -87,7 +87,7 @@ class Order extends AbstractOrder
                     'type' =>$_orderPM['type'],
                     'encryptedData' =>$_orderPM['encryptedData']
                 );
-            } else {
+            }else {
                 $_name = isset($_orderPM['name']) ? $_orderPM['name'] : "";
                 $_expiryMonth = isset($_orderPM['expiryMonth']) ? $_orderPM['expiryMonth'] : "";
                 $_expiryYear = isset($_orderPM['expiryYear']) ? $_orderPM['expiryYear'] : "";

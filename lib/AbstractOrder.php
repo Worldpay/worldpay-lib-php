@@ -49,8 +49,14 @@ abstract class AbstractOrder {
         if (!isset($data['currencyCode'])) {
             $errors[] = Error::$errors['orderInput']['currencyCode'];
         }
-        if (!isset($data['name'])) {
-            $errors[] = Error::$errors['orderInput']['name'];
+        if($data['paymentMethod']['type'] === "CSE"){
+            if(!isset($data['paymentMethod']['encryptedData'])) {
+                $errors[] = Error::$errors['orderInput']['encryptedData'];
+            }
+        }else{
+            if(!isset($data['name'])) {
+                $errors[] = Error::$errors['orderInput']['name'];
+            }
         }
         if (isset($data['billingAddress']) && !is_array($data['billingAddress'])) {
             $errors[] = Error::$errors['orderInput']['billingAddress'];
