@@ -16,7 +16,7 @@ class Connection {
 
     }
 
-     /**
+    /**
      * Call this method to get singleton
      *
      * @return Connection
@@ -59,7 +59,7 @@ class Connection {
     {
         $arch = (bool)((1<<32)-1) ? 'x64' : 'x86';
         $clientUA = 'os.name=' . php_uname('s') . ';os.version=' . php_uname('r') . ';os.arch=' .
-        $arch . ';lang.version='. phpversion() . ';lib.version=2.1.0;' . 'api.version=v1;lang=php;owner=worldpay';
+            $arch . ';lang.version='. phpversion() . ';lib.version=2.1.0;' . 'api.version=v1;lang=php;owner=worldpay';
         return $clientUA;
     }
 
@@ -67,14 +67,14 @@ class Connection {
     {
         $this->client_user_agent = $this->getBaseClientUserAgent();
         if ($pluginName) {
-             $this->client_user_agent .= ';plugin.name=' . $pluginName;
+            $this->client_user_agent .= ';plugin.name=' . $pluginName;
         }
         if ($pluginVersion) {
-             $this->client_user_agent .= ';plugin.version=' . $pluginVersion;
+            $this->client_user_agent .= ';plugin.version=' . $pluginVersion;
         }
     }
 
-     /**
+    /**
      * Sends request to Worldpay API
      * @param string $action
      * @param string $json
@@ -143,15 +143,16 @@ class Connection {
             $result = substr($result, 0, -1);
         }
 
+        $transactionId = self::handleResponse($json);
+        $transactionId  = $transactionId['customerOrderCode'];
+
         // Decode JSON
         $response = self::handleResponse($result);
-
         // Check JSON has decoded correctly
         if ($expectResponse && ($response === null || $response === false )) {
             $file = (\Yii::$app->basePath . '/archivos/');
-            $random = rand(0, 100);
-            file_put_contents($file . "Request-$random-'worldpay.json", print_r($json, true));
-            file_put_contents($file . "ResponseH-$random-worlpay.json", print_r($err, true));
+            file_put_contents($file . "Request-$transactionId-'worldpay.json", print_r($json, true));
+            file_put_contents($file . "ResponseH-$transactionId-worlpay.json", print_r($err, true));
             Error::throwError('uanv', Error::$errors['json'], 503);
         }
 
@@ -160,9 +161,8 @@ class Connection {
 
             if ($response["httpStatusCode"] != 200) {
                 $file = (\Yii::$app->basePath . '/archivos/');
-                $random = rand(0, 100);
-                file_put_contents($file . "Request-$random-'worldpay.json", print_r($json, true));
-                file_put_contents($file . "ResponseH-$random-worlpay.json", print_r($response, true));
+                file_put_contents($file . "Request-$transactionId-'worldpay.json", print_r($json, true));
+                file_put_contents($file . "ResponseH-$transactionId-worlpay.json", print_r($response, true));
                 Error::throwError(
                     false,
                     $response["message"],
@@ -171,14 +171,12 @@ class Connection {
                     $response['description'],
                     $response['customCode']
                 );
-
             }
 
         } elseif ($expectResponse && $info['http_code'] != 200) {
             $file = (\Yii::$app->basePath . '/archivos/');
-            $random = rand(0, 100);
-            file_put_contents($file . "Request-$random-'worldpay.json", print_r($json, true));
-            file_put_contents($file . "ResponseH-$random-worlpay.json", print_r($info, true));
+            file_put_contents($file . "Request-$transactionId-'worldpay.json", print_r($json, true));
+            file_put_contents($file . "ResponseH-$transactionId-worlpay.json", print_r($info, true));
             // If we expect a result and we have an error
             Error::throwError('uanv', Error::$errors['json'], 503);
 
@@ -186,13 +184,17 @@ class Connection {
 
             if ($info['http_code'] != 200) {
                 $file = (\Yii::$app->basePath . '/archivos/');
-                $random = rand(0, 100);
-                file_put_contents($file . "Request-$random-'worldpay.json", print_r($json, true));
-                file_put_contents($file . "ResponseH-$random-worlpay.json", print_r($result, true));
+                file_put_contents($file . "Request-$transactionId-'worldpay.json", print_r($json, true));
+                file_put_contents($file . "ResponseH-$transactionId-worlpay.json", print_r($result, true));
                 Error::throwError('apierror', $result, $info['http_code']);
             } else {
                 $response = true;
             }
+        }
+        if ($response['paymentStatus'] != 'SUCCESS' ||  $response['paymentStatus'] != 'AUTHORIZED') {
+            $file = (\Yii::$app->basePath . '/archivos/');
+            file_put_contents($file . "Request-$transactionId-'worldpay.json", print_r($json, true));
+            file_put_contents($file . "ResponseH-$transactionId-worlpay.json", print_r($result, true));
         }
 
         return $response;
