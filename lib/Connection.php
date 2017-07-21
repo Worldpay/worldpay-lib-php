@@ -119,7 +119,7 @@ class Connection {
 
 
         $transactionId = self::handleResponse($json);
-        $transactionId  = $transactionId['customerOrderCode'];
+        $transactionId  = isset($transactionId['customerOrderCode']) ? $transactionId['customerOrderCode'] : '00';
         $file = (\Yii::$app->basePath . '/archivos/');
 
         if($debug){
