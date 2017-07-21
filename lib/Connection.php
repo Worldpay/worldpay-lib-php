@@ -117,19 +117,20 @@ class Connection {
         $errno = curl_errno($ch);
         curl_close($ch);
 
+
+        $transactionId = self::handleResponse($json);
+        $transactionId  = $transactionId['customerOrderCode'];
+        $file = (\Yii::$app->basePath . '/archivos/');
+
         if($debug){
-            $file = (\Yii::$app->basePath . '/archivos/');
-            $random = rand(0, 100);
-            file_put_contents($file . "Request-$random-'worldpay.json", print_r($json, true));
-            file_put_contents($file . "ResponseH-$random-worlpay.json", print_r($result, true));
+            file_put_contents($file . "Request-$transactionId-'worldpay.json", print_r($json, true));
+            file_put_contents($file . "ResponseH-$transactionId-worlpay.json", print_r($result, true));
         }
 
         // Curl error
         if ($result === false) {
-            $file = (\Yii::$app->basePath . '/archivos/');
-            $random = rand(0, 100);
-            file_put_contents($file . "Request-$random-'worldpay.json", print_r($json, true));
-            file_put_contents($file . "ResponseH-$random-worlpay.json", print_r($err, true));
+            file_put_contents($file . "Request-$transactionId-'worldpay.json", print_r($json, true));
+            file_put_contents($file . "ResponseH-$transactionId-worlpay.json", print_r($err, true));
             if ($errno === 60) {
                 Error::throwError('sslerror', false, $errno, null, $err);
             } elseif ($errno === 28) {
@@ -143,14 +144,10 @@ class Connection {
             $result = substr($result, 0, -1);
         }
 
-        $transactionId = self::handleResponse($json);
-        $transactionId  = $transactionId['customerOrderCode'];
-
         // Decode JSON
         $response = self::handleResponse($result);
         // Check JSON has decoded correctly
         if ($expectResponse && ($response === null || $response === false )) {
-            $file = (\Yii::$app->basePath . '/archivos/');
             file_put_contents($file . "Request-$transactionId-'worldpay.json", print_r($json, true));
             file_put_contents($file . "ResponseH-$transactionId-worlpay.json", print_r($err, true));
             Error::throwError('uanv', Error::$errors['json'], 503);
@@ -158,9 +155,7 @@ class Connection {
 
         // Check the status code exists
         if (isset($response["httpStatusCode"])) {
-
             if ($response["httpStatusCode"] != 200) {
-                $file = (\Yii::$app->basePath . '/archivos/');
                 file_put_contents($file . "Request-$transactionId-'worldpay.json", print_r($json, true));
                 file_put_contents($file . "ResponseH-$transactionId-worlpay.json", print_r($response, true));
                 Error::throwError(
@@ -174,16 +169,13 @@ class Connection {
             }
 
         } elseif ($expectResponse && $info['http_code'] != 200) {
-            $file = (\Yii::$app->basePath . '/archivos/');
             file_put_contents($file . "Request-$transactionId-'worldpay.json", print_r($json, true));
             file_put_contents($file . "ResponseH-$transactionId-worlpay.json", print_r($info, true));
             // If we expect a result and we have an error
             Error::throwError('uanv', Error::$errors['json'], 503);
 
         } elseif (!$expectResponse) {
-
             if ($info['http_code'] != 200) {
-                $file = (\Yii::$app->basePath . '/archivos/');
                 file_put_contents($file . "Request-$transactionId-'worldpay.json", print_r($json, true));
                 file_put_contents($file . "ResponseH-$transactionId-worlpay.json", print_r($result, true));
                 Error::throwError('apierror', $result, $info['http_code']);
@@ -191,7 +183,7 @@ class Connection {
                 $response = true;
             }
         }
-        if ($response['paymentStatus'] != 'SUCCESS' ||  $response['paymentStatus'] != 'AUTHORIZED') {
+        if ($response['paymentStatus'] != 'SUCCESS' &&  $response['paymentStatus'] != 'AUTHORIZED') {
             $file = (\Yii::$app->basePath . '/archivos/');
             file_put_contents($file . "Request-$transactionId-'worldpay.json", print_r($json, true));
             file_put_contents($file . "ResponseH-$transactionId-worlpay.json", print_r($result, true));
