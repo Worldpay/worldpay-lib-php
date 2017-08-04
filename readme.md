@@ -1,5 +1,8 @@
 # Worldpay PHP Library 2.1.2
 
+#### Issues
+Please see our [support contact information]( https://developer.worldpay.com/jsonapi/faq/articles/how-can-i-contact-you-for-support) to raise an issue.
+
 #### Installation
 
 ##### Composer
