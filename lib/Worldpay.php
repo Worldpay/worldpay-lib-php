@@ -102,12 +102,14 @@ class Worldpay
     /**
      * Create Worldpay order
      * @param array $order
+     * @param boolean $debug
      * @return array Worldpay order response
      * */
-    public function createOrder($order = array())
+    public function createOrder($order = array(), $debug=false)
     {
+        
         $myOrder = new Order($order);
-        $response = OrderService::createOrder($myOrder);
+        $response = OrderService::createOrder($myOrder, $debug);
 
         if (isset($response["orderCode"])) {
             //success
